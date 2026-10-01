@@ -15,6 +15,13 @@ Belgian PKCS#11 DLL plus any independently verified dependencies there. The
 stage remains an experiment, not a one-package installer. Confirm DLL provenance,
 runtime dependencies and clean-machine absence before treating results as evidence.
 
+Before copying the DLL to the clean PC, run the included
+`clean-pc-preflight.ps1` there. It reports OS/architecture, smart-card service,
+reader presence and two usual system DLL locations plus the ordinary middleware
+uninstall entry. Share only this JSON result. These indicators do not prove the
+machine is completely free of middleware or minidriver state; keep the original
+clean-machine snapshot and inspect loaded modules during the test.
+
 ## Build and test the standalone probe
 
 Requires CMake >=3.22 and a Windows C++ compiler. It needs no Qt, OpenSSL, Belgian

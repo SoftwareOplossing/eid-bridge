@@ -61,6 +61,7 @@ jobs:
           Copy-Item 'third-party/belgian-eid/LICENSE' -Destination (Join-Path $package 'Belgian-eID-LGPL.txt')
           Copy-Item 'LICENSE' -Destination (Join-Path $package 'Web-eID-MIT.txt')
           Copy-Item 'poc/README.md' -Destination (Join-Path $package 'PoC-instructions.md')
+          Copy-Item 'poc/scripts/clean-pc-preflight.ps1' -Destination $package
           Get-ChildItem $package -Recurse -File | ForEach-Object {
             $relative = [IO.Path]::GetRelativePath($package, $_.FullName)
             '{0} *{1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $relative
