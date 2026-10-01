@@ -1,9 +1,10 @@
 # Windows x64 PoC
 
-Start with the stock middleware/card baseline. The new private-path code is
-prepared; full application build and hardware baseline are pending Windows CI
-and a physical card test. Do not proceed to installer work until the
-implementation plan's hardware and KYC gates pass.
+The stock Web eID 2.8.0 application signed the fixed test digest with an inserted
+Belgian eID through installed middleware on 2026-10-01; independent RSA/SHA-256
+verification passed. The private-path build and clean-PC tests are still pending.
+Do not proceed to installer work until the implementation plan's hardware and
+KYC gates pass.
 
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
 Qt/VC++/OpenSSL runtime files and instructions. It does **not** include Belgian
@@ -21,6 +22,12 @@ reader presence and two usual system DLL locations plus the ordinary middleware
 uninstall entry. Share only this JSON result. These indicators do not prove the
 machine is completely free of middleware or minidriver state; keep the original
 clean-machine snapshot and inspect loaded modules during the test.
+
+On a development PC that already has the official middleware, use
+`stage-test-middleware.ps1 -ExpectedSha256 <recorded SHA-256>` to make a **local**
+test kit from its signed DLL, the probe and LGPL notice. It checks the expected
+hash/signature and writes the kit under ignored `build/`. Do not commit or publish
+that binary or treat its unknown exact source correspondence as release-ready.
 
 ## Build and test the standalone probe
 
@@ -96,7 +103,7 @@ command; 3 = initialized/enumerated successfully but no token with `--require-to
 Without that flag, zero tokens is a successful **load-only** result, never a card
 or signing success. The probe never logs token labels, serials, certificates or PINs.
 
-On a clean Windows VM with USB reader pass-through, establish absence of official
+On a clean Windows PC, establish absence of official
 middleware/minidriver installation from the snapshot, registry, installed files
 and module tracing. Record runtime prerequisites and all loaded modules. Repeat
 the signature checker against the locally built private-path app, then the real

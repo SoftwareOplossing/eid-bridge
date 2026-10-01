@@ -1,16 +1,17 @@
 # Validation status
 
 Initial run: Windows development host, 2026-09-27. CMake 3.31.6 / MinGW GCC 15.2.0;
-Python 3.13 / cryptography 50.0.1. No hardware signature was requested.
+Python 3.13 / cryptography 50.0.1. Hardware baseline added 2026-10-01 with an
+inserted Belgian eID. No PIN or identifying certificate data is recorded here.
 
 | Check | Result | Evidence / next action |
 |---|---|---|
 | Standalone native probe compilation | PASS | `cmake --build build/poc-native` |
 | Native automated suite | PASS, 8 CTest cases | Mock enumeration, required-token failure, missing export, relative path rejection; default/private resolution, sibling dependency success, CWD/PATH dependency exclusion, eleven configuration inputs (valid configurations also compiled) |
 | Independent signature checker | PASS, 8 unittest cases | Synthetic RSA/ECC, altered digest/signature, substituted cert, wrong algorithm, malformed ECC, native errors and timeout |
-| Installed system middleware load/init | PASS, baseline only | Version 5.1.34.6213, zero tokens, all called PKCS#11 functions returned CKR_OK |
-| Unmodified full native build | BLOCKED | No Qt development kit; supported MSVC toolchain not installed. MinGW only used for standalone checks |
-| T1 stock app + system middleware + card | NOT RUN | Insert reader/card; use supported full build and signing checker |
+| Installed system middleware load/init | PASS, baseline only | Signed version 5.1.34.6213; PKCS#11 init/enumeration returned CKR_OK with one token after card insertion |
+| Full native build | PASS in Windows CI | Portable Windows x64 PoC workflow built and ran tests; clean-PC runtime validation remains pending |
+| T1 stock app + system middleware + card | PASS, preliminary | Installed Web eID 2.8.0 retrieved the signing certificate and signed the fixed SHA-256 digest; independent RSA PKCS#1 v1.5 verification passed after private PIN entry. Repeat on the plan's pinned version before final gate. |
 | T2 current staging KYC | NOT RUN | Trace existing backend acceptance and redacted evidence |
 | POC-1 private DLL on clean Windows | NOT RUN | Requires clean snapshot and approved binary/dependencies |
 | POC-2 Belgian token | NOT RUN | Probe's token count is zero on current host; enumeration alone does not establish Belgian identity |
@@ -31,6 +32,6 @@ substituted certificate/finalization reference, replay/cross-account submission,
 client-provided wrong name, unsupported browser and multiple card generations.
 Use a disposable test card for retry-exhaustion tests with human supervision.
 
-The Windows CI workflows have not been run remotely yet. The application pins
-the published library patch so a fresh checkout can run the new tests. The
-portable workflow must pass before its artifact is used on a clean test PC.
+Both Windows CI workflows have passed remotely. The application pins the
+published library patch so a fresh checkout can run the tests. The portable
+archive is being revised to include the MSVC runtime before clean-PC use.

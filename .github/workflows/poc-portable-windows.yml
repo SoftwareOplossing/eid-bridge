@@ -48,6 +48,22 @@ jobs:
           Copy-Item -LiteralPath $app -Destination $package
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --compiler-runtime --dir $package (Join-Path $package 'web-eid.exe')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # windeployqt can report success without staging the MSVC runtime.
+          # Copy the redistributable CRT beside the executable for a clean PC.
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+          if (-not (Test-Path $vswhere)) { throw 'Visual Studio locator is missing' }
+          $vsRoot = & $vswhere -latest -property installationPath
+          if (-not $vsRoot) { throw 'Visual Studio installation was not found' }
+          $redistRoot = Join-Path $vsRoot 'VC/Redist/MSVC'
+          $crt = Get-ChildItem -LiteralPath $redistRoot -Directory | Sort-Object Name -Descending |
+            ForEach-Object { Join-Path $_.FullName 'x64/Microsoft.VC143.CRT' } |
+            Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $crt) { throw 'MSVC x64 redistributable CRT was not found' }
+          Get-ChildItem -LiteralPath $crt -Filter '*.dll' -File |
+            Copy-Item -Destination $package
+          foreach ($required in @('msvcp140.dll', 'msvcp140_1.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')) {
+            if (-not (Test-Path (Join-Path $package $required))) { throw "CRT runtime missing: $required" }
+          }
           $cache = Get-Content 'build/portable/CMakeCache.txt'
           $includeLine = $cache | Where-Object { $_ -match '^OPENSSL_INCLUDE_DIR:PATH=' } | Select-Object -First 1
           if (-not $includeLine) { throw 'OpenSSL include location missing from CMake cache' }
