@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: Let's Peppol contributors
+# SPDX-License-Identifier: MIT
+cryptography==50.0.1
+cffi==2.1.1
+pycparser==3.0

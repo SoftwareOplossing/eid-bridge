@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: Let's Peppol contributors
+# SPDX-License-Identifier: MIT
+name: Portable Windows x64 PoC
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/clean-windows-poc]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: jurplel/install-qt-action@bcb88e3bed2e992f5f9e24c0f9e364a231d278eb # v4.4.0
+        with:
+          version: 6.11.2
+          arch: win64_msvc2022_64
+          cache: true
+          aqtsource: git+https://github.com/miurahr/aqtinstall.git@16db45a70b5905ad596941b223469bc86a56901e
+      - name: Configure native app for fixed private module path
+        shell: pwsh
+        run: |
+          cmake -S . -B build/portable -A x64 `
+            "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR" `
+            '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake' `
+            "-DVCPKG_MANIFEST_DIR=$env:GITHUB_WORKSPACE/lib/libelectronic-id" `
+            '-DELECTRONIC_ID_BEID_MODULE_PATH=C:/LetsPeppolPoC/beidpkcs11.dll'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build and test
+        shell: pwsh
+        run: |
+          cmake --build build/portable --config Release --parallel 4
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir build/portable -C Release --output-on-failure
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Stage executable and runtime (no Belgian middleware)
+        shell: pwsh
+        run: |
+          $package = Join-Path $env:GITHUB_WORKSPACE 'build/portable-package'
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          $app = Join-Path $env:GITHUB_WORKSPACE 'build/portable/src/app/Release/web-eid.exe'
+          if (-not (Test-Path $app)) { throw 'Web eID executable is missing' }
+          Copy-Item -LiteralPath $app -Destination $package
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --compiler-runtime --dir $package (Join-Path $package 'web-eid.exe')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $cache = Get-Content 'build/portable/CMakeCache.txt'
+          $includeLine = $cache | Where-Object { $_ -match '^OPENSSL_INCLUDE_DIR:PATH=' } | Select-Object -First 1
+          if (-not $includeLine) { throw 'OpenSSL include location missing from CMake cache' }
+          $includeDir = ($includeLine -split '=', 2)[1]
+          $opensslBin = Join-Path (Split-Path $includeDir) 'bin'
+          foreach ($name in @('libcrypto-3-x64.dll', 'libssl-3-x64.dll')) {
+            $file = Join-Path $opensslBin $name
+            if (-not (Test-Path $file)) { throw "OpenSSL runtime missing: $file" }
+            Copy-Item -LiteralPath $file -Destination $package
+          }
+          Copy-Item 'third-party/belgian-eid/LICENSE' -Destination (Join-Path $package 'Belgian-eID-LGPL.txt')
+          Copy-Item 'LICENSE' -Destination (Join-Path $package 'Web-eID-MIT.txt')
+          Copy-Item 'poc/README.md' -Destination (Join-Path $package 'PoC-instructions.md')
+          Get-ChildItem $package -Recurse -File | ForEach-Object {
+            $relative = [IO.Path]::GetRelativePath($package, $_.FullName)
+            '{0} *{1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $relative
+          } | Set-Content -Encoding utf8 (Join-Path $package 'SHA256SUMS.txt')
+          Compress-Archive -Path (Join-Path $package '*') -DestinationPath 'build/portable-windows-x64-poc.zip'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: portable-windows-x64-poc
+          path: build/portable-windows-x64-poc.zip
+          if-no-files-found: error

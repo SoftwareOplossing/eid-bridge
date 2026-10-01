@@ -1,0 +1,4 @@
+# No distributable middleware selected; there are no bundled binary checksums.
+# Installed developer-machine baseline only (not included):
+# SHA256 b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93
+# C:/Windows/System32/beidpkcs11.dll, file version 5.1.34.6213

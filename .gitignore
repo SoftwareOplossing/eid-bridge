@@ -18,3 +18,7 @@ tests/tests/web-eid-tests
 build-web-eid-*/
 CMakeSettings.json
 .vs/
+
+# Local PoC interpreter artifacts; hardware evidence must remain outside source control.
+__pycache__/
+poc/.venv/

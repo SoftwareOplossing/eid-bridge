@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: Let's Peppol contributors
+# SPDX-License-Identifier: MIT
+set(module "${MOCK}")
+set(expected 0)
+if(SCENARIO STREQUAL "require-token")
+    set(arguments --require-token)
+    set(expected 3)
+elseif(SCENARIO STREQUAL "missing-export")
+    set(module "${NON_PKCS11}")
+    set(expected 1)
+elseif(SCENARIO STREQUAL "relative-path")
+    set(module beidpkcs11.dll)
+    set(expected 1)
+endif()
+execute_process(COMMAND "${PROBE}" "${module}" ${arguments}
+    RESULT_VARIABLE result OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(NOT result EQUAL expected)
+    message(FATAL_ERROR "${SCENARIO}: expected exit ${expected}, got ${result}: ${output}${error}")
+endif()
+if(SCENARIO STREQUAL "enumerate" AND NOT output MATCHES "tokens_present=0")
+    message(FATAL_ERROR "Missing enumeration evidence: ${output}")
+endif()

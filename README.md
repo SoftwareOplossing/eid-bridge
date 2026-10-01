@@ -1,5 +1,10 @@
 # web-eid-app
 
+This fork is the starting point for **Let's Peppol eID Bridge**. The first
+Windows PoC is documented in [poc/README.md](poc/README.md), with
+[validation status](docs/test-matrix.md) and [upstream maintenance](UPSTREAM.md).
+It is not yet a bundled installer or a validated replacement for the existing KYC setup.
+
 ![European Regional Development Fund](https://github.com/open-eid/DigiDoc4-Client/blob/master/client/images/EL_Regionaalarengu_Fond.png)
 
 The Web eID application performs cryptographic digital signing and
