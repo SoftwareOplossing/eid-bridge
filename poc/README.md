@@ -5,10 +5,10 @@ Belgian eID through installed middleware on 2026-10-01; independent RSA/SHA-256
 verification passed. On 2026-10-04, the private-path build also produced three
 independently verified signatures on a clean Windows 11 x64 laptop without the
 Belgian middleware uninstall entry or the usual system DLLs. A repeat private-DLL
-probe with the card inserted found one token and exited successfully. Confirming
-that Web eID selected this PKCS#11 route rather than its Windows CryptoAPI fallback,
-loaded-module tracing, negative hardware tests, exact binary
-source correspondence and real KYC remain open. Do not proceed to installer
+probe with the card inserted found one token and exited successfully. The
+route-only diagnostic reported `belgian-pkcs11` for certificate retrieval.
+Loaded-module tracing, negative hardware tests, exact binary source
+correspondence and real KYC remain open. Do not proceed to installer
 work until the implementation plan's gates pass.
 
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
@@ -20,6 +20,45 @@ its zip to that PC, extract it into `C:/LetsPeppolPoC`, and add an official x64
 Belgian PKCS#11 DLL plus any independently verified dependencies there. The
 stage remains an experiment, not a one-package installer. Confirm DLL provenance,
 runtime dependencies and clean-machine absence before treating results as evidence.
+
+## Browser check on the clean laptop
+
+The current [Let's Peppol onboarding page](https://be.letspeppol.org/onboarding)
+has a **Check Web eID** button. Its source calls `getSigningCertificate` and
+shows a success state if it obtains a signing certificate and SHA-256 support.
+It does not submit a KYC contract or require a PIN. This is a browser/native-host
+integration check only; do not start real registration or contract signing for
+this PoC.
+
+On the clean Windows laptop, install the official [Web eID extension for
+Edge](https://microsoftedge.microsoft.com/addons/detail/gnmckgbandlkacikdndelhfghdejfido)
+through Edge Add-ons and ensure it is enabled. No extension fork is needed for
+this check. Keep the portable native app and private Belgian DLL in
+`C:\LetsPeppolPoC`. Copy `register-test-host.ps1` beside `web-eid.exe` and run:
+
+```powershell
+cd C:\LetsPeppolPoC
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\register-test-host.ps1 -Action Status
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\register-test-host.ps1 -Action Install
+```
+
+The script registers `eu.webeid` under **HKCU for Edge only** and creates a
+manifest that points to this exact portable app. It refuses to replace an
+existing Web eID native-host registration and requires the private DLL to be
+present. If it reports a conflict, stop and report that status; do not manually
+override the existing host. Restart Edge, open the onboarding URL, insert the
+card, and click **Check Web eID**. Share only whether the page shows **Web eID
+is working** or an error message, without certificate, identity or PIN data.
+After the check, remove this test registration with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\register-test-host.ps1 -Action Remove
+```
+
+This is not the production one-package installer. The extension currently
+comes from the browser store; its installation/activation behavior must be
+resolved for release. The live onboarding check does not prove the backend KYC
+validation gates.
 
 The Windows fork writes an operational log by default at
 `Documents/LetsPeppol eID Bridge/Logs/LetsPeppol-eID-Bridge.log`, with one

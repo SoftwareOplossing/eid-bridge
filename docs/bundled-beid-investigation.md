@@ -25,6 +25,11 @@ The user also reported signing after reattaching the external USB reader.
 On repeat with the card fully inserted in the internal reader, the private-DLL
 probe reported one token, successful `C_GetTokenInfo`, and exit code zero. The
 zero-token result was obtained with the card absent.
+The follow-up diagnostic captured the native application's certificate-retrieval
+route as `belgian-pkcs11`. This is direct evidence that Web eID used the private
+module for certificate retrieval, beyond merely loading it. The preceding
+signature runs used the same build and card; their exact loaded-module inventory
+still awaits tracing.
 These results support private operation on this machine, but do not establish
 the exact selected binary/source pair, a complete absence of middleware state,
 the loaded-module inventory, or support for every reader/card generation. No
@@ -50,9 +55,8 @@ handlers. `src/common/dynamiclib.cpp` and `src/cardlayer/pinpadlib.cpp` contain
 additional dynamic-loading behavior. Their presence is an investigation item,
 not proof of mandatory global installation or of safe private operation.
 
-Next evidence: establish whether Web eID used the Belgian PKCS#11 route rather
-than its Windows CryptoAPI fallback; select a reproducible official binary/source
-pair; inspect loaded modules and
-transitive dependencies during PIN/signing on clean Windows; test removal and
+Next evidence: select a reproducible official binary/source pair; inspect
+loaded modules and transitive dependencies during PIN/signing on clean Windows;
+test removal and
 reinsertion. Do not infer registry independence or minimum bundle size from
 source/import tables alone.

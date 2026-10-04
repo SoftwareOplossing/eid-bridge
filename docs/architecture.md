@@ -1,7 +1,8 @@
 # Let's Peppol eID Bridge: first implementation slice
 
-Status: experimental Windows x64 code and test tooling. Neither the hardware
-milestone nor the clean-machine gate has passed. No installer has been added.
+Status: experimental Windows x64 code and test tooling. The private-DLL signing
+milestone passed on one clean laptop; the formal clean-machine and KYC gates are
+still open. No installer has been added.
 
 The intended route remains the existing website -> web-eid.js -> upstream
 extension -> Web eID native protocol -> libelectronic-id -> Belgian PKCS#11 ->

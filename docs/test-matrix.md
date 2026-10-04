@@ -16,23 +16,24 @@ fingerprint is intentionally omitted from this repository.
 |---|---|---|
 | Standalone native probe compilation | PASS | `cmake --build build/poc-native` |
 | Native automated suite | PASS, 8 CTest cases | Mock enumeration, required-token failure, missing export, relative path rejection; default/private resolution, sibling dependency success, CWD/PATH dependency exclusion, eleven configuration inputs (valid configurations also compiled) |
-| Independent signature checker | PASS, 8 unittest cases | Synthetic RSA/ECC, altered digest/signature, substituted cert, wrong algorithm, malformed ECC, native errors and timeout |
+| Independent signature checker | PASS, 11 unittest cases | Synthetic RSA/ECC, altered digest/signature, substituted cert, wrong algorithm, malformed ECC, native errors/timeout and privacy-safe route detection |
 | Installed system middleware load/init | PASS, baseline only | Signed version 5.1.34.6213; PKCS#11 init/enumeration returned CKR_OK with one token after card insertion |
 | Full native build | PASS in Windows CI | Portable Windows x64 PoC workflow built and ran tests; archive included MSVC runtime and was hash-verified after extraction |
 | T1 stock app + system middleware + card | PASS, preliminary | Installed Web eID 2.8.0 retrieved the signing certificate and signed the fixed SHA-256 digest; independent RSA PKCS#1 v1.5 verification passed after private PIN entry. Repeat on the plan's pinned version before final gate. |
 | T2 current staging KYC | NOT RUN | Trace existing backend acceptance and redacted evidence |
 | POC-1 private DLL on clean Windows | PASS, user-reported | Private DLL loaded; `C_GetFunctionList`, `C_Initialize`, slot enumeration and `C_Finalize` returned CKR_OK with the system DLL absent. Loaded-module trace still needed. |
 | POC-2 Belgian token | PASS, user-reported | With the card inserted, private-DLL probe returned `tokens_present=1`, `C_GetTokenInfo=CKR_OK`, and exit code 0. The earlier zero-token/exit-3 result was with the card absent. Token identity is not logged. |
-| POC-3 signing certificate | PASS, preliminary | Private-path Web eID retrieved a parseable signing certificate used for successful signature verification. Card ownership/subject and chain trust were not independently checked. |
+| POC-3 signing certificate | PASS, preliminary | Private-path Web eID retrieved a parseable signing certificate used for successful signature verification. The route-only diagnostic reported `belgian-pkcs11` and `certificate_retrieved=true`. Card ownership/subject and chain trust were not independently checked. |
 | POC-4 PIN signature and verification | PASS, happy path | One initial native request failed; three later runs produced independently verified RSA/SHA-256 PKCS#1 v1.5 signatures after local PIN entry. Wrong PIN/cancellation not tested; do not automate PIN attempts. |
 | POC-5 removal/reinsertion | PARTIAL | User reattached USB reader and subsequent signing continued. Removal before/during operation and recovery are untested. |
 | KYC exact PDF/identity/account binding | NOT RUN | Current backend source has open assurance items |
-| Chrome/Edge/Firefox | NOT RUN | Browser KYC tests after native baseline |
+| Chrome/Edge/Firefox | NOT RUN | Edge native-host certificate check on current onboarding is next; browser KYC remains later |
 
-The initial clean-Windows private-DLL signing milestone is **functionally
-demonstrated**. Formal Gate A sign-off still needs confirmation that the native
-app selected the Belgian PKCS#11 route (Windows also has a CryptoAPI fallback),
-loaded-module/dependency evidence and the remaining POC-4 negative case. Gate B
+The initial clean-Windows private-DLL signing milestone is **met**: the module
+loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,
+retrieved a certificate and returned independently verified signatures. Formal
+Gate A sign-off still needs loaded-module/dependency evidence and the remaining
+POC-4 negative case. Gate B
 (actual KYC assurance) is **not passed**. The mathematical signature checker tests
 neither PDF trust nor CA trust/revocation. Windows 10, ARM64, Linux and macOS
 have no support claim.

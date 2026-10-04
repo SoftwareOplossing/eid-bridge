@@ -13,6 +13,10 @@ jobs:
         with:
           submodules: recursive
           persist-credentials: false
+      - name: Check reversible browser-host helper
+        run: |
+          $status = .\poc\scripts\register-test-host.ps1 -Action Status | ConvertFrom-Json
+          if ($status.browser -ne 'Edge') { throw 'Unexpected default browser' }
       - name: Build probe and loader tests (no Qt, middleware or card needed)
         run: |
           cmake -S poc/native -B build/poc-native -A x64
