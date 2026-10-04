@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QSettings>
@@ -21,7 +22,15 @@ namespace
 
 bool openLogFile(QFile& logFile)
 {
+#ifdef Q_OS_WIN
+    // A visible per-user location makes support logs accessible without registry edits.
+    const auto documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    const auto logFilePath = documents.isEmpty()
+                                 ? QString()
+                                 : QDir(documents).filePath(QStringLiteral("LetsPeppol eID Bridge/Logs"));
+#else
     const auto logFilePath = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+#endif
     if (logFilePath.isEmpty()) {
         std::cerr << "Unable to determine logfile location path" << std::endl;
         return false;
@@ -32,7 +41,20 @@ bool openLogFile(QFile& logFile)
                   << logFileDir.absolutePath().toStdString() << '\'' << std::endl;
         return false;
     }
+#ifdef Q_OS_WIN
+    const auto fileName = logFileDir.filePath(QStringLiteral("LetsPeppol-eID-Bridge.log"));
+    // The native host starts for each browser request; keep at most one previous file.
+    if (QFileInfo(fileName).size() >= 5 * 1024 * 1024) {
+        const auto previous = fileName + QStringLiteral(".1");
+        QFile::remove(previous);
+        if (!QFile::rename(fileName, previous)) {
+            std::cerr << "Unable to rotate log file" << std::endl;
+        }
+    }
+    logFile.setFileName(fileName);
+#else
     logFile.setFileName(logFileDir.filePath(QStringLiteral("%1.log").arg(qApp->applicationName())));
+#endif
     if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
         std::cerr << "Unable to open logfile '" << logFile.fileName().toStdString() << '\''
                   << std::endl;
@@ -71,10 +93,11 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, const QSt
 
     std::cerr << toString(type) << ": " << message.toStdString() << std::endl;
 
-    static bool isLoggingDisabled = !QSettings().value(QStringLiteral("logging"), false).toBool();
-    if (isLoggingDisabled) {
+#ifndef Q_OS_WIN
+    if (!QSettings().value(QStringLiteral("logging"), false).toBool()) {
         return;
     }
+#endif
 
     static QFile logFile;
     static bool logFileIsOpen = openLogFile(logFile);

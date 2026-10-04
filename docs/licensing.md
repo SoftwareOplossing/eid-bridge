@@ -20,3 +20,16 @@ The VC++ runtime requires its own redistribution review. Qt/OpenSSL and the
 application's other bundled dependencies require a complete notice inventory.
 Legal review of the concrete distribution/replacement mechanism remains a release
 gate; an LGPL file alone is not completion of redistribution obligations.
+
+## Product branding
+
+The Web eID application and `libelectronic-id` source are MIT-licensed. Covered
+code, UI text and artwork may be modified and redistributed while preserving
+copyright and license notices; inspect any asset-specific notices as well. The
+Belgian middleware's LGPL obligations
+remain separate. Open-source copyright permission does not grant a right to
+present our fork as an official Web eID or Belgian government product; replace
+the upstream brand in user-facing materials and attribute Web eID in About and
+license notices. The Let's Peppol logo used in the About dialog is copied from
+the local MIT-licensed Let's Peppol project (`app/ui/public/logo-only.svg`);
+confirm brand ownership/authorization before public release.

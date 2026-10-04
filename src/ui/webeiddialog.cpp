@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QMutexLocker>
+#include <QPixmap>
 #include <QRegularExpressionValidator>
 #include <QSettings>
 #include <QStyle>
@@ -43,6 +44,13 @@ WebEidDialog::WebEidDialog(QWidget* parent) : WebEidUI(parent), ui(new Private)
     // close() deletes the dialog automatically if the Qt::WA_DeleteOnClose flag is set.
     setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
+    ui->aboutLogo->setPixmap(QPixmap(u":/images/lets-peppol-logo.svg"_s));
+    ui->aboutPageLabel->setText(u"About Let's Peppol eID Bridge"_s);
+    ui->aboutText->setText(QStringLiteral(
+        "<b>Let's Peppol eID Bridge</b> connects the Web eID browser extension to an electronic "
+        "ID card for signing. Based on the open-source Web eID application; component licenses "
+        "are provided with the software."));
+    ui->aboutHelp->setText(u"Help: <a href=\"https://letspeppol.org\">letspeppol.org</a>"_s);
     ui->lockedWarning->hide();
     if (Application::isDarkTheme()) {
         if (QFile f(u":dark.qss"_s); f.open(QFile::ReadOnly | QFile::Text)) {

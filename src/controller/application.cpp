@@ -37,7 +37,7 @@ Application::Application(int& argc, char** argv, const QString& name) :
     QApplication(argc, argv), translator(new QTranslator(this))
 {
     setApplicationName(name);
-    setApplicationDisplayName(u"Web eID"_s);
+    setApplicationDisplayName(u"Let's Peppol eID Bridge"_s);
     setApplicationVersion(QStringLiteral(PROJECT_VERSION));
     setOrganizationDomain(u"web-eid.eu"_s);
     setOrganizationName(u"RIA"_s);

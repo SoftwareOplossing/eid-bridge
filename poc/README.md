@@ -2,9 +2,14 @@
 
 The stock Web eID 2.8.0 application signed the fixed test digest with an inserted
 Belgian eID through installed middleware on 2026-10-01; independent RSA/SHA-256
-verification passed. The private-path build and clean-PC tests are still pending.
-Do not proceed to installer work until the implementation plan's hardware and
-KYC gates pass.
+verification passed. On 2026-10-04, the private-path build also produced three
+independently verified signatures on a clean Windows 11 x64 laptop without the
+Belgian middleware uninstall entry or the usual system DLLs. A repeat private-DLL
+probe with the card inserted found one token and exited successfully. Confirming
+that Web eID selected this PKCS#11 route rather than its Windows CryptoAPI fallback,
+loaded-module tracing, negative hardware tests, exact binary
+source correspondence and real KYC remain open. Do not proceed to installer
+work until the implementation plan's gates pass.
 
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
 Qt/VC++/OpenSSL runtime files and instructions. It does **not** include Belgian
@@ -15,6 +20,12 @@ its zip to that PC, extract it into `C:/LetsPeppolPoC`, and add an official x64
 Belgian PKCS#11 DLL plus any independently verified dependencies there. The
 stage remains an experiment, not a one-package installer. Confirm DLL provenance,
 runtime dependencies and clean-machine absence before treating results as evidence.
+
+The Windows fork writes an operational log by default at
+`Documents/LetsPeppol eID Bridge/Logs/LetsPeppol-eID-Bridge.log`, with one
+rotated previous file on the next launch after it reaches 5 MiB. No registry key
+or `web-eid.conf` flag is required. Logs can include card/reader and error details; review them
+before sharing and never include a PIN or raw certificate.
 
 Before copying the DLL to the clean PC, run the included
 `clean-pc-preflight.ps1` there. It reports OS/architecture, smart-card service,

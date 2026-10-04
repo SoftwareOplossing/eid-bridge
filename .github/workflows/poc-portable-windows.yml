@@ -75,6 +75,7 @@ jobs:
             Copy-Item -LiteralPath $file -Destination $package
           }
           Copy-Item 'third-party/belgian-eid/LICENSE' -Destination (Join-Path $package 'Belgian-eID-LGPL.txt')
+          Copy-Item 'third-party/lets-peppol/LICENSE' -Destination (Join-Path $package 'LetsPeppol-MIT.txt')
           Copy-Item 'LICENSE' -Destination (Join-Path $package 'Web-eID-MIT.txt')
           Copy-Item 'poc/README.md' -Destination (Join-Path $package 'PoC-instructions.md')
           Copy-Item 'poc/scripts/clean-pc-preflight.ps1' -Destination $package

@@ -14,6 +14,22 @@ loader. `C_GetFunctionList`, `C_Initialize`, slot-count enumeration and
 `C_Finalize` returned CKR_OK. Token count was zero. SCardSvr was running.
 This proves neither signing nor private deployment nor clean-machine operation.
 
+On 2026-10-04, a user tested a local PoC package containing this signed DLL on
+a freshly installed Windows 11 Home x64 laptop. Preflight found no ordinary
+Belgian middleware uninstall entry and no Belgian PKCS#11 DLL in System32 or
+SysWOW64. The private DLL loaded and initialized. The first probe reported zero
+tokens with the card absent; an initial native signing
+request failed. After correcting card placement, three independent signature
+checks passed with the private-path Web eID build (RSA/SHA-256 PKCS#1 v1.5).
+The user also reported signing after reattaching the external USB reader.
+On repeat with the card fully inserted in the internal reader, the private-DLL
+probe reported one token, successful `C_GetTokenInfo`, and exit code zero. The
+zero-token result was obtained with the card absent.
+These results support private operation on this machine, but do not establish
+the exact selected binary/source pair, a complete absence of middleware state,
+the loaded-module inventory, or support for every reader/card generation. No
+certificate fingerprint or PIN is recorded here.
+
 `objdump -p` found these direct import groups in that exact binary:
 
 | Component | Required? | Evidence / scope | License status |
@@ -34,7 +50,9 @@ handlers. `src/common/dynamiclib.cpp` and `src/cardlayer/pinpadlib.cpp` contain
 additional dynamic-loading behavior. Their presence is an investigation item,
 not proof of mandatory global installation or of safe private operation.
 
-Next evidence: select reproducible official binary/source pair; inspect complete
-transitive dependencies; trace initialization/PIN/signing on clean Windows with
-no middleware/minidriver; test ordinary CCID readers first. Do not infer registry
-independence or minimum bundle size from source/import tables alone.
+Next evidence: establish whether Web eID used the Belgian PKCS#11 route rather
+than its Windows CryptoAPI fallback; select a reproducible official binary/source
+pair; inspect loaded modules and
+transitive dependencies during PIN/signing on clean Windows; test removal and
+reinsertion. Do not infer registry independence or minimum bundle size from
+source/import tables alone.
