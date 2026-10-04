@@ -18,7 +18,23 @@ PAYLOAD = b"Let's Peppol eID Bridge PoC\n"
 DIGEST = hashlib.sha256(PAYLOAD).digest()
 
 
-def native_command(app, command, arguments):
+def card_route(stderr):
+    routes = set()
+    for line in stderr.decode("utf-8", errors="replace").splitlines():
+        if line.startswith("INFO: Card ") and " in reader " in line:
+            name = line[len("INFO: Card "):].split(" in reader ", 1)[0].strip('"')
+            if name == "Belgian eID (PKCS#11)":
+                routes.add("belgian-pkcs11")
+            elif name == "MS CryptoAPI electronic ID":
+                routes.add("windows-cryptoapi")
+            else:
+                routes.add("other")
+    if len(routes) != 1:
+        raise RuntimeError("Card route was missing or ambiguous")
+    return routes.pop()
+
+
+def native_command(app, command, arguments, *, include_route=False):
     result = subprocess.run(
         [str(app), "-c", command, json.dumps(arguments)],
         capture_output=True, timeout=180, check=False,
@@ -29,7 +45,7 @@ def native_command(app, command, arguments):
     response = json.loads(result.stdout)
     if not isinstance(response, dict) or "error" in response:
         raise RuntimeError(f"Native {command} returned an error")
-    return response
+    return (response, card_route(result.stderr)) if include_route else response
 
 
 def verify(certificate, digest, response):
@@ -63,9 +79,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app", required=True, type=Path, help="Absolute path to web-eid.exe")
     parser.add_argument("--origin", required=True, help="Development HTTPS origin shown in native UI")
+    parser.add_argument("--route-only", action="store_true",
+                        help="Report the selected card backend without signing or printing certificate data")
     args = parser.parse_args()
     if not args.app.is_absolute() or not args.app.is_file():
         parser.error("--app must name an existing absolute executable path")
+    if args.route_only:
+        print("Checking card route; no PIN is needed.", file=sys.stderr)
+        certificate_response, route = native_command(
+            args.app, "get-signing-certificate", {"origin": args.origin}, include_route=True)
+        if not certificate_response.get("certificate"):
+            raise RuntimeError("No signing certificate returned")
+        print(json.dumps({"card_route": route, "certificate_retrieved": True}))
+        return
     print("Retrieve the signing certificate, then approve the PoC signature in the native UI.", file=sys.stderr)
     certificate_response = native_command(args.app, "get-signing-certificate", {"origin": args.origin})
     if not any(a.get("hashFunction") == "SHA-256"

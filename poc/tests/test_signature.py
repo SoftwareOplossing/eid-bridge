@@ -98,6 +98,22 @@ class SignatureTests(unittest.TestCase):
         with self.assertRaises(subprocess.TimeoutExpired):
             check.native_command("app.exe", "sign", {})
 
+    def test_card_route_recognizes_private_backend_without_reader_details(self):
+        stderr = b'INFO: Card "Belgian eID (PKCS#11)" in reader "private-reader" using protocol T=1\n'
+        self.assertEqual(check.card_route(stderr), "belgian-pkcs11")
+        self.assertNotIn("private-reader", check.card_route(stderr))
+
+    def test_card_route_distinguishes_windows_fallback(self):
+        stderr = b'INFO: Card "MS CryptoAPI electronic ID" in reader "reader" using protocol T=1\n'
+        self.assertEqual(check.card_route(stderr), "windows-cryptoapi")
+
+    def test_card_route_missing_or_mixed_fails(self):
+        with self.assertRaises(RuntimeError):
+            check.card_route(b"")
+        with self.assertRaises(RuntimeError):
+            check.card_route(b'INFO: Card "Belgian eID (PKCS#11)" in reader "one"\n'
+                             b'INFO: Card "MS CryptoAPI electronic ID" in reader "two"\n')
+
 
 if __name__ == "__main__":
     unittest.main()

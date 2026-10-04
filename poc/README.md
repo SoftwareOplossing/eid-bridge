@@ -91,6 +91,15 @@ P1363 ECDSA with the certificate public key, using a prehashed digest. It output
 status, algorithm, digest and certificate SHA-256 fingerprint, not identity data.
 Treat the fingerprint as linkable test evidence and keep it out of public logs.
 
+To determine whether signing uses the intended Belgian PKCS#11 route or Web
+eID's Windows CryptoAPI fallback, run the same checker with `--route-only` and
+the same `--app` / `--origin` arguments. It retrieves a certificate without PIN
+entry, reads the native app's diagnostic stderr through a pipe, and prints only
+`card_route` and `certificate_retrieved`. It never prints the certificate or
+reader name. `belgian-pkcs11` is the expected route for this experiment;
+`windows-cryptoapi` is a different backend and does not prove private-DLL
+signing. Run with a correctly seated card.
+
 This is mathematical signature verification, not certificate-chain/revocation,
 Belgian nationality, legal identity, PDF or KYC verification. It does not discover
 which DLL a running app loaded; confirm that separately with Process Monitor.
