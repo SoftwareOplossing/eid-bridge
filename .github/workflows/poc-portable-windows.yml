@@ -2,6 +2,14 @@
 # SPDX-License-Identifier: MIT
 name: Portable Windows x64 PoC
 on:
+  workflow_call:
+    inputs:
+      module_path:
+        type: string
+        default: C:/LetsPeppolPoC/beidpkcs11.dll
+      artifact_name:
+        type: string
+        default: portable-windows-x64-poc
   workflow_dispatch:
   push:
     branches: [codex/clean-windows-poc]
@@ -24,12 +32,14 @@ jobs:
           aqtsource: git+https://github.com/miurahr/aqtinstall.git@16db45a70b5905ad596941b223469bc86a56901e
       - name: Configure native app for fixed private module path
         shell: pwsh
+        env:
+          BEID_MODULE_PATH: ${{ inputs.module_path || 'C:/LetsPeppolPoC/beidpkcs11.dll' }}
         run: |
           cmake -S . -B build/portable -A x64 `
             "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR" `
             '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake' `
             "-DVCPKG_MANIFEST_DIR=$env:GITHUB_WORKSPACE/lib/libelectronic-id" `
-            '-DELECTRONIC_ID_BEID_MODULE_PATH=C:/LetsPeppolPoC/beidpkcs11.dll'
+            "-DELECTRONIC_ID_BEID_MODULE_PATH=$env:BEID_MODULE_PATH"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build and test
         shell: pwsh
@@ -86,6 +96,6 @@ jobs:
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath 'build/portable-windows-x64-poc.zip'
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: portable-windows-x64-poc
+          name: ${{ inputs.artifact_name || 'portable-windows-x64-poc' }}
           path: build/portable-windows-x64-poc.zip
           if-no-files-found: error

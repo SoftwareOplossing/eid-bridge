@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: Let's Peppol contributors
+# SPDX-License-Identifier: MIT
+name: Installer application (Windows x64)
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/clean-windows-poc]
+    paths:
+      - .github/workflows/installer-app-windows.yml
+      - .github/workflows/poc-portable-windows.yml
+      - lib/libelectronic-id
+      - src/**
+      - install/lets-peppol.ico
+permissions:
+  contents: read
+jobs:
+  build:
+    uses: ./.github/workflows/poc-portable-windows.yml
+    with:
+      module_path: APP_DIRECTORY
+      artifact_name: installer-app-windows-x64
