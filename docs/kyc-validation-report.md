@@ -1,8 +1,9 @@
 # KYC validation report
 
 Status on 2026-10-08: Edge onboarding certificate check reported working on
-the clean Windows laptop after native-host registration repair. The actual
-KYC PDF signing and backend assurance gate remain untested.
+the clean Windows laptop after native-host registration repair. The user also
+reports that contract signing works. Backend completion, downloaded final PDF
+integrity and the full assurance gate remain unverified.
 
 ## Next controlled transaction
 
@@ -35,8 +36,9 @@ status and reproducible test descriptions here. Never collect or share the PIN.
 | Test | Expected | Result | Evidence |
 |---|---|---|---|
 | Edge onboarding installation check | Certificate and SHA-256 support retrieved | PASS, user-reported | Confirmed working after helper repair on 2026-10-08 |
-| Intended KYC transaction | Final signature verifies; correct identity/account outcome | NOT RUN | Test account/environment selection pending |
-| Exact final PDF | Intended content unchanged; cryptographic signature valid | NOT RUN | Independently validate finalized PDF |
+| Native KYC contract signing | Signature returned through the existing browser flow | PASS, user-reported | User reported signing works on 2026-10-08; no identifying data collected |
+| Completed KYC transaction | Correct backend identity/account outcome and final PDF | PENDING CONFIRMATION | Site completion and PDF download outcome requested |
+| Exact final PDF | Intended content unchanged; cryptographic signature valid | NOT RUN | Offline `check-kyc-pdf` verifies signature/whole-file coverage; intended document/account still requires backend evidence |
 | Trusted signing certificate | Chain, validity and required policy pass | NOT RUN | Confirm deployed truststore and revocation policy |
 | Altered PDF/digest/signature | Rejected; no registration granted | NOT RUN | Controlled backend test |
 | Substituted certificate | Rejected | NOT RUN | Controlled backend test |

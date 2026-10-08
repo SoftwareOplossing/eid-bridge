@@ -129,7 +129,7 @@ application without invoking the upstream installer/WiX script:
 ```powershell
 .\poc\scripts\build-native.ps1 -QtPath C:\Qt\6.11.2\msvc2022_64 -VcpkgRoot C:\vcpkg
 python -m venv poc/.venv
-.\poc\.venv\Scripts\python.exe -m pip install -r poc/requirements.txt
+.\poc\.venv\Scripts\python.exe -m pip install -r poc/pdf-requirements.txt
 .\poc\.venv\Scripts\python.exe -m unittest discover -s poc/tests -v
 .\poc\.venv\Scripts\python.exe poc/scripts/check-signature.py --app C:\LetsPeppol\eid-bridge\build\native-poc\src\app\RelWithDebInfo\web-eid.exe --origin https://localhost
 ```
@@ -159,6 +159,34 @@ signing. Run with a correctly seated card.
 This is mathematical signature verification, not certificate-chain/revocation,
 Belgian nationality, legal identity, PDF or KYC verification. It does not discover
 which DLL a running app loaded; confirm that separately with Process Monitor.
+
+## Check the downloaded KYC PDF privately
+
+After the website finishes contract signing, keep the downloaded PDF on the
+test laptop and run the separate offline checker:
+
+```powershell
+.\check-kyc-pdf.exe 'C:\path\to\signed-contract.pdf'
+```
+
+Its JSON contains only booleans and a signature count. It reports whether the
+signed bytes are intact, the CMS signature verifies, and the entire file is
+covered. `integrity_check_passed=true` requires exactly one regular signature
+and all three checks. Later legitimate signatures/timestamps/updates may need
+review; a coverage failure alone does not prove malicious tampering.
+No certificate identity, PDF content, filename or fingerprint is printed.
+The source version runs as `python poc/scripts/check-kyc-pdf.py <pdf>` using
+`poc/pdf-requirements.txt`. No HTTP/certificate-fetching requests are enabled.
+
+This checker has no configured Belgian trust anchors and does not prove CA
+trust, revocation, the intended contract, director identity or account binding.
+Those explicit false fields are remaining assurance checks, not a claim that
+the certificate is invalid. Share only the JSON; retain the PDF privately.
+
+Packaging uses PyInstaller 6.19.0 with `--onefile --console`, and
+`--collect-all pyhanko --collect-all pyhanko_certvalidator --collect-all tzdata`.
+The local test zip includes dependency license notices. This diagnostic is
+separate from the native bridge and does not add runtime dependencies to it.
 
 ## Private runtime experiment, after baseline passes
 
