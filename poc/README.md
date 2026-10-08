@@ -12,8 +12,10 @@ correspondence and full KYC assurance remain open. On 2026-10-08, the user
 reported successful browser signing and KYC/registration for the intended
 company/director; the downloaded PDF passed all offline integrity checks with
 xref compatibility. Certificate trust, revocation and document/account binding
-remain separate checks. Do not proceed to installer work until the implementation
-plan's gates pass.
+are KYC project responsibilities; existing backend tests and configuration evidence
+can supply that part of the plan's acceptance gate. They do not require new native
+validators. Production installer work remains subject to the implementation
+plan's gates.
 
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
 Qt/VC++/OpenSSL runtime files and instructions. It does **not** include Belgian

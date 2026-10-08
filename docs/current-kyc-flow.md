@@ -42,7 +42,13 @@ token of at least two characters as a whole word in the director name and at
 least one given-name token of at least two characters. Do not replace this with
 new client identity data or expand collection for this bridge.
 
-Items preventing a KYC assurance claim:
+KYC-owned assurance findings (outside native bridge implementation):
+
+These findings concern backend validation and deployment configuration. They
+do not call for certificate-trust, revocation or account/session validators in
+the native app. The bridge should preserve the existing signing protocol;
+existing KYC tests and configuration evidence can supply the backend portions
+of the plan's integration acceptance gate.
 
 - `validateCertificateChain` skips chain validation when the truststore setting is
   blank. `application.properties` defaults the truststore to empty and revocation

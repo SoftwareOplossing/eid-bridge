@@ -42,14 +42,17 @@ retrieved a certificate and returned independently verified signatures. Formal
 Gate A sign-off still needs loaded-module/dependency evidence and the remaining
 POC-4 negative case. Gate B
 (actual KYC assurance) is **not passed**. The mathematical signature checker tests
-neither PDF trust nor CA trust/revocation. Windows 10, ARM64, Linux and macOS
-have no support claim.
+neither PDF trust nor CA trust/revocation. These backend assurance items are
+owned by the KYC project; existing KYC tests/configuration evidence may supply
+them. They do not require new native-app validators. Windows 10, ARM64, Linux
+and macOS have no support claim.
 
-Remaining negative/manual matrix: absent reader/card, unsupported card, wrong or
-blocked PIN, cancellation, removal, expired/revoked cert, two readers/cards, missing
-or corrupt private DLL despite installed middleware, changed PDF/signature/digest,
-substituted certificate/finalization reference, replay/cross-account submission,
-client-provided wrong name, unsupported browser and multiple card generations.
+Remaining bridge negative/manual matrix: absent reader/card, unsupported card,
+wrong or blocked PIN, cancellation, removal, two readers/cards, missing or corrupt
+private DLL despite installed middleware, unsupported browser and multiple card
+generations. KYC-owned acceptance cases: expired/revoked cert,
+changed PDF/signature/digest, substituted certificate/finalization reference,
+replay/cross-account submission and client-provided wrong name.
 Use a disposable test card for retry-exhaustion tests with human supervision.
 
 Both Windows CI workflows passed remotely. The application pins the published
