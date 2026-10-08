@@ -7,7 +7,7 @@ is needed. No global Belgian middleware or minidriver is installed.
 Before upgrading from the portable PoC on this Windows user, remove its browser
 host registration with the helper you already used:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\LetsPeppolPoC\register-test-host.ps1 -Action Remove
-Keep the portable folder as your rollback copy. Close Edge before installation.
+Keep the portable folder as your rollback copy. Close your browser before installation.
 The installer refuses to replace another registered native host.
 
 The installer requests the official Edge and Chrome Web eID extensions from
@@ -20,6 +20,17 @@ Edge: https://microsoftedge.microsoft.com/addons/detail/gnmckgbandlkacikdndelhfg
 Chrome: https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic
 Firefox: https://addons.mozilla.org/firefox/addon/web-eid-webextension/
 Only Edge has been exercised with the current Let's Peppol PoC.
+
+The installer Finish screen recognizes your Windows default HTTPS browser:
+Edge, Chrome or Firefox. It displays that browser's setup/restart instructions
+and offers to open its official Web eID store page. Save any work before
+restarting. In Edge, type edge://restart in the address bar; in Chrome, type
+chrome://restart. For Firefox, install the extension, then close and reopen it.
+The installer does not close browser windows or restart them automatically.
+For an unrecognized browser or missing default, Finish opens these instructions.
+Launch the MSI normally as your own Windows user and approve its administrator
+prompt. Explicitly running the whole MSI as another user detects that user's
+browser instead. Silent installs do not launch anything.
 
 Restart the browser and open https://be.letspeppol.org/onboarding . The Start menu
 contains an onboarding link, these instructions and an Open Documents for logs

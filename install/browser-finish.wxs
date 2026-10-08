@@ -1,0 +1,52 @@
+<!-- SPDX-FileCopyrightText: Let's Peppol contributors -->
+<!-- SPDX-License-Identifier: MIT -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <!-- Read the installing user's HTTPS choice. Never change browser defaults.
+         Keep this in the UI session, before the machine installation elevates. -->
+    <Property Id="DEFAULT_BROWSER_PROGID">
+      <RegistrySearch Id="DefaultHttpsBrowser" Root="HKCU" Bitness="always64" Type="raw"
+                      Key="Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" Name="ProgId" />
+    </Property>
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Open browser setup instructions" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="Save your work and restart the browser you use for onboarding. Install or enable Web eID in Edge, Chrome or Firefox. Setup instructions are also available from the Start menu." />
+    <SetProperty Id="WixShellExecTarget" Action="DefaultFinishTarget" After="CostFinalize" Sequence="ui" Value="[INSTALLFOLDER]README.txt" />
+
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALTEXT" Action="EdgeFinishText" After="DefaultFinishTarget" Sequence="ui"
+                 Value="Microsoft Edge is your default browser. Save your work, then type edge://restart in its address bar. Enable Web eID when prompted, or use its store page. Then return to Let's Peppol onboarding."
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;MSEdgeHTM&quot;" />
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Action="EdgeFinishLabel" After="EdgeFinishText" Sequence="ui"
+                 Value="Open Web eID in the Edge Add-ons store" Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;MSEdgeHTM&quot;" />
+    <SetProperty Id="WixShellExecTarget" Action="EdgeFinishUrl" After="EdgeFinishLabel" Sequence="ui"
+                 Value="https://microsoftedge.microsoft.com/addons/detail/gnmckgbandlkacikdndelhfghdejfido"
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;MSEdgeHTM&quot;" />
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALTEXT" Action="ChromeFinishText" After="EdgeFinishUrl" Sequence="ui"
+                 Value="Google Chrome is your default browser. Save your work, then type chrome://restart in its address bar. Enable Web eID when prompted, or use its store page. Then return to Let's Peppol onboarding."
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;ChromeHTML&quot;" />
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Action="ChromeFinishLabel" After="ChromeFinishText" Sequence="ui"
+                 Value="Open Web eID in the Chrome Web Store" Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;ChromeHTML&quot;" />
+    <SetProperty Id="WixShellExecTarget" Action="ChromeFinishUrl" After="ChromeFinishLabel" Sequence="ui"
+                 Value="https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic"
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;ChromeHTML&quot;" />
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALTEXT" Action="FirefoxFinishText" After="ChromeFinishUrl" Sequence="ui"
+                 Value="Mozilla Firefox is your default browser. Add the official Web eID extension from Firefox Add-ons and approve its permissions. Close and reopen Firefox, then return to Let's Peppol onboarding."
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;FirefoxURL&quot;" />
+    <SetProperty Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Action="FirefoxFinishLabel" After="FirefoxFinishText" Sequence="ui"
+                 Value="Open Web eID in Firefox Add-ons" Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;FirefoxURL&quot;" />
+    <SetProperty Id="WixShellExecTarget" Action="FirefoxFinishUrl" After="FirefoxFinishLabel" Sequence="ui"
+                 Value="https://addons.mozilla.org/firefox/addon/web-eid-webextension/"
+                 Condition="DEFAULT_BROWSER_PROGID ~&lt;&lt; &quot;FirefoxURL&quot;" />
+
+    <!-- Only an explicit Finish click launches anything. Silent installs and
+         maintenance/uninstall never start a browser. Ignore shell errors: the
+         installation has already succeeded and Start menu instructions remain. -->
+    <CustomAction Id="OpenBrowserSetup" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec"
+                  Execute="immediate" Impersonate="yes" Return="ignore" />
+    <UI Id="BrowserFinish">
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="OpenBrowserSetup" Order="1"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE" />
+    </UI>
+  </Fragment>
+</Wix>

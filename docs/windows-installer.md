@@ -1,6 +1,6 @@
 # Private Windows installer
 
-`build/installer/LetsPeppol-eID-Bridge-0.1.1-windows-x64-test.msi` is an unsigned
+`build/installer/LetsPeppol-eID-Bridge-0.1.2-windows-x64-test.msi` is an unsigned
 private Windows 11 x64 test package. It bundles the bridge, Qt/VC++/OpenSSL
 runtimes and the tested Belgian PKCS#11 DLL. It installs under
 `C:\Program Files\LetsPeppol eID Bridge` with administrator approval; no global
@@ -28,6 +28,24 @@ not bypass that prompt or introduce force-install policies. Internet access is
 required; existing browser policies and a previously rejected/uninstalled external
 extension can prevent installation. Store links in README.txt provide recovery.
 Firefox remains a manual store install in this version.
+
+Version 0.1.2 reads the installing user's default HTTPS browser and adapts the
+Finish screen for Edge, Chrome or Firefox. Edge/Chrome instructions request a
+restart using `edge://restart` / `chrome://restart` in the browser's address bar,
+followed by approving/enabling Web eID. Firefox instructions request a manual
+add-on installation, then closing and reopening Firefox. A checked Finish option
+opens the selected browser's official Web eID store page through Windows' default
+URL handler. Unknown/missing browser choices open the installed README instead.
+Save work before restarting. The installer does not terminate browser processes
+or claim it has restarted them; actual restart remains a user action.
+
+Launch the MSI normally and approve the machine installation's administrator
+prompt. Detection and launch belong to the UI session. Explicitly launching the
+whole MSI as another user uses that user's browser settings. Maintenance,
+uninstall, silent installs and an unchecked Finish option do not launch anything.
+Default-browser associations are read only; extension requests still cover both
+Edge and Chrome regardless of which browser is default. There is no new helper
+executable or upstream application change.
 
 Browser documentation: [Edge external installation](https://learn.microsoft.com/en-us/microsoft-edge/extensions/developer-guide/alternate-distribution-options),
 [Chrome external installation and confirmation](https://developer.chrome.com/docs/extensions/how-to/distribute/install-extensions).
@@ -67,13 +85,14 @@ card/signing/cancellation tests remain accepted.
 The `Installer application (Windows x64)` workflow reuses the portable native build with
 `ELECTRONIC_ID_BEID_MODULE_PATH=APP_DIRECTORY`. Download and extract its runtime
 artifact and verify SHA256SUMS.txt. It intentionally contains no Belgian DLL.
-Use PowerShell 7, .NET 8 and WiX 4.0.6 with WixToolset.UI.wixext/4.0.6:
+Use PowerShell 7, .NET 8 and WiX 4.0.6 with its UI and Util extensions:
 
 ```powershell
 dotnet tool install wix --version 4.0.6 --tool-path build/tools/wix
 build/tools/wix/wix.exe extension add --global WixToolset.UI.wixext/4.0.6
-poc/scripts/build-installer.ps1 -RuntimeDirectory build/installer-app-runtime -MiddlewareDll build/clean-pc-test-kit/beidpkcs11.dll -MiddlewareSha256 b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 -Wix build/tools/wix/wix.exe
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-0.1.1-windows-x64-test.msi
+build/tools/wix/wix.exe extension add --global WixToolset.Util.wixext/4.0.6
+poc/scripts/build-installer.ps1 -RuntimeDirectory build/installer-help-app-runtime -MiddlewareDll build/clean-pc-test-kit/beidpkcs11.dll -MiddlewareSha256 b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 -Wix build/tools/wix/wix.exe
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-0.1.2-windows-x64-test.msi
 ```
 
 The builder requires NATIVE-BUILD.json for the executable-directory native build,
@@ -88,6 +107,13 @@ with the MSI and a new OutputDirectory. Then run `test_installer_startup.py`
 against the reconstructed web-eid.exe; it requests only version/quit and checks
 the Documents log. WiX 4's decompiler can warn about MsiLockPermissionsEx while
 extracting; the independent MSI-table test checks the actual ACL row.
+
+The MSI-table test also evaluates the authored Finish properties/conditions for
+Edge, Chrome (including profile suffixes and case), Firefox's suffixed ProgID,
+unknown browsers and a missing default. It checks launch ordering, checkbox
+opt-out, UI-only actions and maintenance/uninstall exclusion without launching
+a browser or changing the system. The new Finish screen still needs a physical
+install/upgrade check on the test laptop.
 
 BUILD-INFO.json, NATIVE-BUILD.json, SHA256SUMS.txt and licence notices are included
 in the package. This is not a public production release: it is unsigned, matching

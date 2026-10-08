@@ -55,6 +55,11 @@ foreach ($component in $extensionComponents) {
     Assert (([int]$component[1] -band 256) -eq 0 -and ([int]$component[1] -band 64) -eq 0) 'Store requests must use the 32-bit registry view and preserve their initial ownership.'
 }
 $searches = @(Rows 'SELECT `Signature_`, `Root`, `Key`, `Name`, `Type` FROM `RegLocator`' 5)
+$defaultSearch = @($searches | Where-Object { $_[0] -eq 'DefaultHttpsBrowser' })
+Assert ($defaultSearch.Count -eq 1 -and $defaultSearch[0][1] -eq '1' -and
+    $defaultSearch[0][2] -eq 'Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice' -and
+    $defaultSearch[0][3] -eq 'ProgId') 'Default browser must be read from the current user HTTPS choice.'
+Assert (@($registry | Where-Object { $_[2] -like '*UrlAssociations*' }).Count -eq 0) 'Installer must never change the default browser.'
 $hostSearches = @($searches | Where-Object { $_[2] -like '*NativeMessagingHosts\eu.webeid' })
 Assert ($hostSearches.Count -eq 12) 'Both user/machine hives and registry views must be checked.'
 $lock = @(Rows 'SELECT `LockObject`, `Table`, `SDDLText` FROM `MsiLockPermissionsEx`' 3)
@@ -67,6 +72,60 @@ $session = $installer.OpenPackage($path, 1)
 function SetProperty([string]$name, [string]$value) {
     $null = $session.GetType().InvokeMember('Property', 'SetProperty', $null, $session, @($name,$value))
 }
+function GetProperty([string]$name) {
+    $session.GetType().InvokeMember('Property', 'GetProperty', $null, $session, @($name))
+}
+# Exercise the actual UI conditions and type-51 property values without running
+# any custom action, opening a browser or installing this MSI.
+$actions = @{}
+foreach ($row in Rows 'SELECT `Action`, `Type`, `Source`, `Target` FROM `CustomAction`' 4) { $actions[$row[0]] = $row }
+$finishSequence = @(Rows 'SELECT `Action`, `Condition`, `Sequence` FROM `InstallUISequence`' 3 |
+    Where-Object { $_[0] -match '^(DefaultFinishTarget|(Edge|Chrome|Firefox)Finish(Text|Label|Url))$' } |
+    Sort-Object { [int]$_[2] })
+Assert ($finishSequence.Count -eq 10) 'Browser setup must run entirely in the UI session.'
+$executeActions = @(Rows 'SELECT `Action` FROM `InstallExecuteSequence`' 1 | ForEach-Object { $_[0] })
+Assert (@($finishSequence | Where-Object { $_[0] -in $executeActions }).Count -eq 0 -and
+    'OpenBrowserSetup' -notin $executeActions) 'Silent install must never launch browser setup.'
+$launch = $actions.OpenBrowserSetup
+Assert ($launch[2] -eq 'Wix4UtilCA_X64' -and $launch[3] -eq 'WixShellExec' -and
+    ([int]$launch[1] -band (1024 + 2048)) -eq 0 -and ([int]$launch[1] -band 63) -eq 1) 'Browser launch must be immediate and impersonate the installing user.'
+$finishEvents = @(Rows 'SELECT `Event`, `Argument`, `Condition`, `Ordering` FROM `ControlEvent` WHERE `Dialog_` = ''ExitDialog'' AND `Control_` = ''Finish''' 4)
+$openEvent = @($finishEvents | Where-Object { $_[0] -eq 'DoAction' -and $_[1] -eq 'OpenBrowserSetup' })
+$closeEvent = @($finishEvents | Where-Object { $_[0] -eq 'EndDialog' })
+Assert ($openEvent.Count -eq 1 -and $closeEvent.Count -eq 1 -and [int]$openEvent[0][3] -lt [int]$closeEvent[0][3]) 'Browser setup must launch before Finish dismisses the dialog.'
+foreach ($scenario in @(
+    @('MSEdgeHTM','Edge','https://microsoftedge.microsoft.com/addons/detail/gnmckgbandlkacikdndelhfghdejfido','edge://restart'),
+    @('ChromeHTML','Chrome','https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic','chrome://restart'),
+    @('chromehtml.TestProfile','Chrome','https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic','chrome://restart'),
+    @('FirefoxURL-308046B0AF4A39CB','Firefox','https://addons.mozilla.org/firefox/addon/web-eid-webextension/','close and reopen'),
+    @('OperaStable','instructions','C:\Program Files\LetsPeppol eID Bridge\README.txt','restart'),
+    @('','instructions','C:\Program Files\LetsPeppol eID Bridge\README.txt','restart')
+)) {
+    SetProperty 'DEFAULT_BROWSER_PROGID' $scenario[0]
+    SetProperty 'INSTALLFOLDER' 'C:\Program Files\LetsPeppol eID Bridge\'
+    SetProperty 'WIXUI_EXITDIALOGOPTIONALTEXT' $properties.WIXUI_EXITDIALOGOPTIONALTEXT
+    SetProperty 'WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' $properties.WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT
+    foreach ($item in $finishSequence) {
+        if (-not $item[1] -or $session.EvaluateCondition($item[1]) -eq 1) {
+            $action = $actions[$item[0]]
+            Assert ([int]$action[1] -eq 51) 'Browser setup detection must only set UI properties.'
+            $record = $installer.CreateRecord(0)
+            $record.StringData(0) = $action[3]
+            SetProperty $action[2] ($session.FormatRecord($record))
+        }
+    }
+    Assert ((GetProperty 'WixShellExecTarget') -eq $scenario[2]) "Wrong browser setup target for $($scenario[0])."
+    Assert ((GetProperty 'WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT') -match $scenario[1] -and
+        (GetProperty 'WIXUI_EXITDIALOGOPTIONALTEXT') -match [regex]::Escape($scenario[3])) 'Browser setup instructions do not match the selected browser.'
+}
+foreach ($case in @(@('','', '1',1), @('','', '',0), @('1','', '1',0), @('','ALL', '1',0))) {
+    SetProperty 'Installed' $case[0]
+    SetProperty 'REMOVE' $case[1]
+    SetProperty 'WIXUI_EXITDIALOGOPTIONALCHECKBOX' $case[2]
+    Assert ($session.EvaluateCondition($openEvent[0][2]) -eq $case[3]) 'Setup launch must respect the checkbox and skip maintenance/removal.'
+}
+SetProperty 'Installed' ''
+SetProperty 'REMOVE' ''
 $hostCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'A different Web eID*' })[0][0]
 $directoryCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'The installation folder*' })[0][0]
 $osCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'This test installer requires*' })[0][0]
@@ -127,4 +186,4 @@ Assert ($session.EvaluateCondition($osCondition) -eq 0) 'Unsupported Windows 10 
 SetProperty 'OSBUILD' '22000'
 SetProperty 'OSARCH' 'ARM64'
 Assert ($session.EvaluateCondition($osCondition) -eq 0) 'Untested ARM64 accepted.'
-Write-Output 'MSI metadata, support links, extension ownership, ACL and conflict/upgrade/architecture conditions passed. No installation was performed.'
+Write-Output 'MSI metadata, browser setup routing/launch conditions, support links, extension ownership, ACL and conflict/upgrade/architecture conditions passed. No installation was performed.'

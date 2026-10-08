@@ -56,6 +56,13 @@ that predate this MSI are not claimed or removed. No forced browser policy is
 introduced, and no third-party extension is blocked. Native and Windows help
 links point to Let's Peppol onboarding.
 
+MSI 0.1.2 adds browser-specific Finish instructions using a read-only search of
+the installing user's Windows HTTPS choice. The optional Finish action uses
+WiX's shell-launch custom action to open the official store in the default
+browser; unknown choices open README.txt. Restart instructions remain user
+actions. No extra helper application, browser-process control or default-browser
+change is introduced. These actions are confined to interactive installation UI.
+
 The installer authoring is separate from upstream `install/web-eid.wxs`, with
 its own product/upgrade identity. MSI manages files, registrations, shortcuts,
 upgrade rollback and uninstall; no registration PowerShell custom action is used.

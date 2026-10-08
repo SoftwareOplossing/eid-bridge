@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string]$RuntimeDirectory,
     [Parameter(Mandatory)][string]$MiddlewareDll,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$MiddlewareSha256,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.1',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.2',
     [string]$Wix = 'wix',
     [string]$OutputDirectory = '',
     [switch]$Fixture
@@ -133,9 +133,10 @@ $message = Xml 'A different Web eID native host is registered. Remove the earlie
 WriteUtf8 (Join-Path $work 'hosts.wxs') ('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"><Fragment>{0}<Launch Condition="{1}" Message="{2}" /><ComponentGroup Id="NativeHosts">{3}</ComponentGroup></Fragment></Wix>' -f ($searches -join "`n"),$condition,$message,($hosts -join "`n"))
 $name = if ($Fixture) { 'FIXTURE-NOT-FOR-USE' } else { 'LetsPeppol-eID-Bridge' }
 $msi = Join-Path $OutputDirectory "$name-$Version-windows-x64-test.msi"
-& $Wix build -nologo -arch x64 -ext WixToolset.UI.wixext `
+& $Wix build -nologo -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
     -d "RepoRoot=$root" -d "Version=$Version" `
-    (Join-Path $root 'install/lets-peppol.wxs') (Join-Path $work 'payload.wxs') (Join-Path $work 'hosts.wxs') -o $msi
+    (Join-Path $root 'install/lets-peppol.wxs') (Join-Path $root 'install/browser-finish.wxs') `
+    (Join-Path $work 'payload.wxs') (Join-Path $work 'hosts.wxs') -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'WiX MSI build or validation failed.' }
 Write-Output "Built MSI: $msi"
 Get-FileHash -LiteralPath $msi -Algorithm SHA256
