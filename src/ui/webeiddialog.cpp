@@ -50,7 +50,11 @@ WebEidDialog::WebEidDialog(QWidget* parent) : WebEidUI(parent), ui(new Private)
         "<b>Let's Peppol eID Bridge</b> connects the Web eID browser extension to an electronic "
         "ID card for signing. Based on the open-source Web eID application; component licenses "
         "are provided with the software."));
-    ui->aboutHelp->setText(u"Help: <a href=\"https://letspeppol.org\">letspeppol.org</a>"_s);
+    const auto helpText = [] {
+        return u"Help: <a href=\"https://be.letspeppol.org/onboarding\">Let's Peppol onboarding</a>"_s;
+    };
+    setTrText(ui->aboutHelp, helpText);
+    setTrText(ui->fatalHelp, helpText);
     ui->lockedWarning->hide();
     if (Application::isDarkTheme()) {
         if (QFile f(u":dark.qss"_s); f.open(QFile::ReadOnly | QFile::Text)) {
@@ -116,8 +120,7 @@ WebEidDialog::WebEidDialog(QWidget* parent) : WebEidUI(parent), ui(new Private)
             dup2(unusedPipe[1], 1); // Redirect stdout to pipe.
         }
 #endif
-        QDesktopServices::openUrl(
-            tr("https://www.id.ee/en/article/how-to-check-that-your-id-card-reader-is-working/"));
+        QDesktopServices::openUrl(QUrl(u"https://be.letspeppol.org/onboarding"_s));
 #ifdef Q_OS_LINUX
         if (!pipeFailed) {
             fflush(stdout);
