@@ -50,6 +50,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Stage executable and runtime (no Belgian middleware)
         shell: pwsh
+        env:
+          BEID_MODULE_PATH: ${{ inputs.module_path || 'C:/LetsPeppolPoC/beidpkcs11.dll' }}
         run: |
           $package = Join-Path $env:GITHUB_WORKSPACE 'build/portable-package'
           New-Item -ItemType Directory -Path $package -Force | Out-Null
@@ -87,6 +89,23 @@ jobs:
           Copy-Item 'third-party/belgian-eid/LICENSE' -Destination (Join-Path $package 'Belgian-eID-LGPL.txt')
           Copy-Item 'third-party/lets-peppol/LICENSE' -Destination (Join-Path $package 'LetsPeppol-MIT.txt')
           Copy-Item 'LICENSE' -Destination (Join-Path $package 'Web-eID-MIT.txt')
+          $licenses = Join-Path $package 'licenses'
+          New-Item -ItemType Directory -Path $licenses -Force | Out-Null
+          Get-ChildItem 'build/portable/vcpkg_installed/x64-windows/share' -Directory | ForEach-Object {
+            $notice = Join-Path $_.FullName 'copyright'
+            if (Test-Path $notice) { Copy-Item $notice (Join-Path $licenses ($_.Name + '-copyright.txt')) }
+          }
+          Get-ChildItem $env:QT_ROOT_DIR -Recurse -Directory -Filter LICENSES | ForEach-Object {
+            Copy-Item $_.FullName (Join-Path $licenses ('Qt-' + $_.Parent.Name)) -Recurse -Force
+          }
+          @{
+            app_commit = $env:GITHUB_SHA
+            library_commit = (& git -C lib/libelectronic-id rev-parse HEAD)
+            module_resolution = $env:BEID_MODULE_PATH
+            app_sha256 = (Get-FileHash (Join-Path $package 'web-eid.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+            qt_version = '6.11.2'
+            workflow_run = $env:GITHUB_RUN_ID
+          } | ConvertTo-Json | Set-Content (Join-Path $package 'NATIVE-BUILD.json') -Encoding utf8
           Copy-Item 'poc/README.md' -Destination (Join-Path $package 'PoC-instructions.md')
           Copy-Item 'poc/scripts/clean-pc-preflight.ps1' -Destination $package
           Get-ChildItem $package -Recurse -File | ForEach-Object {
