@@ -8,8 +8,12 @@ Belgian middleware uninstall entry or the usual system DLLs. A repeat private-DL
 probe with the card inserted found one token and exited successfully. The
 route-only diagnostic reported `belgian-pkcs11` for certificate retrieval.
 Loaded-module tracing, negative hardware tests, exact binary source
-correspondence and real KYC remain open. Do not proceed to installer
-work until the implementation plan's gates pass.
+correspondence and full KYC assurance remain open. On 2026-10-08, the user
+reported successful browser signing and KYC/registration for the intended
+company/director; the downloaded PDF passed all offline integrity checks with
+xref compatibility. Certificate trust, revocation and document/account binding
+remain separate checks. Do not proceed to installer work until the implementation
+plan's gates pass.
 
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
 Qt/VC++/OpenSSL runtime files and instructions. It does **not** include Belgian

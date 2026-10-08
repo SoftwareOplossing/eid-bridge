@@ -2,32 +2,27 @@
 
 Status on 2026-10-08: Edge onboarding certificate check reported working on
 the clean Windows laptop after native-host registration repair. The user also
-reports that contract signing works and supplied a downloaded PDF check that
-failed strict parsing (`PdfStrictReadError`). A PDFBox/iText interoperability
-restriction was reproduced with synthetic data and handled in the offline
-checker. The earlier local KYC workaround was removed; the user's exact PDF
-and the full assurance gate remain unverified.
+reports successful KYC/registration for the intended company and director.
+The downloaded contract passed the updated offline checker: one signature,
+intact signed bytes, valid cryptographic signature and whole-file coverage.
+The reported xref compatibility mode confirms the original strict parser
+restriction. The earlier local KYC workaround was removed. Certificate trust,
+revocation, independent document/account binding and the full assurance gate
+remain unverified.
 
-## Next controlled transaction
+## Remaining controlled validation
 
-Use the same laptop, portable app, private Belgian DLL and official Edge
-extension. Keep the repaired current-user native-host registration in place.
-Select a staging/test company account before starting the transaction. The
-current live URL is `https://be.letspeppol.org/onboarding`; its installation
-check is complete. A real contract signing at that URL needs a company
-registration the tester intends and is authorized to complete. The test route
-has not yet been selected.
+The user has completed the success path using the same laptop, portable app,
+private Belgian DLL and official Edge extension at
+`https://be.letspeppol.org/onboarding`. Keep that result as reported evidence.
+Use a controlled staging/test environment for remaining tamper/replay cases;
+that test route has not yet been selected.
 
-1. Follow the existing registration/director-confirmation flow. Verify the
-   intended company, director and contract shown by the website.
-2. Let the existing backend prepare its usual KYC PDF and signing digest.
-3. Approve that intended signature and enter the PIN in the native UI.
-4. Record the site's success/error outcome and whether the final PDF downloads.
-   A downloaded PDF or success screen alone does not establish trusted KYC.
-5. Verify the final PDF signature, intended content and signer against the
-   backend's prepared transaction. Confirm certificate-chain enforcement and
-   the configured revocation policy, and check director/account binding.
-6. Run tamper/replay cases in the controlled test environment. Record rejected
+1. Confirm deployed certificate-chain enforcement, validity/policy checks and
+   the configured revocation policy using non-identifying configuration evidence.
+2. Compare the intended content and signer in the final PDF against the backend's
+   prepared transaction, and independently verify director/account binding.
+3. Run tamper/replay cases in the controlled test environment. Record rejected
    responses and ensure no ownership/registration is granted for failures.
 
 Keep the original PDF, signing certificate, certificate fingerprint and
@@ -40,8 +35,9 @@ status and reproducible test descriptions here. Never collect or share the PIN.
 |---|---|---|---|
 | Edge onboarding installation check | Certificate and SHA-256 support retrieved | PASS, user-reported | Confirmed working after helper repair on 2026-10-08 |
 | Native KYC contract signing | Signature returned through the existing browser flow | PASS, user-reported | User reported signing works on 2026-10-08; no identifying data collected |
-| Completed KYC transaction | Correct backend identity/account outcome and final PDF | PENDING CONFIRMATION | Site completion and PDF download outcome requested |
-| Exact final PDF | Intended content unchanged; cryptographic signature valid | AWAITING UPDATED CHECKER RESULT | Original strict checker raised `PdfStrictReadError`; recheck the same downloaded file with the compatibility checker. Intended document/account still requires backend evidence |
+| Completed KYC transaction | Intended company/director outcome and final PDF | PASS, user-reported | User confirmed successful KYC/registration for the intended company and director on 2026-10-08; this does not independently establish backend trust policy or account binding |
+| Downloaded final PDF integrity | Signed bytes intact; cryptographic signature valid; whole-file coverage | PASS, user-reported | Updated checker reported one signature with all three checks true and `integrity_check_passed=true`; `pdf_parse_mode=xref_compatibility`, `parser_issue=xref_stream_object_reused` |
+| Intended document/account binding | Prepared contract, intended signer and account independently matched | NOT RUN | Successful site outcome and PDF integrity do not independently prove backend transaction/account binding |
 | Trusted signing certificate | Chain, validity and required policy pass | NOT RUN | Confirm deployed truststore and revocation policy |
 | Altered PDF/digest/signature | Rejected; no registration granted | NOT RUN | Controlled backend test |
 | Substituted certificate | Rejected | NOT RUN | Controlled backend test |
@@ -66,7 +62,8 @@ It reproduced `PdfStrictReadError`: `XRef stream objects must not be clobbered
 in strict mode.` The initial PDF parsed strictly; the prepared and final
 revisions failed. Compatibility parsing of the synthetic final file verified
 the signature and entire-file coverage. No private user contract was inspected;
-the same exception class alone does not confirm their exact parser failure.
+the user's subsequent compatibility report confirms this same parser restriction
+for their downloaded file, with all three signature integrity checks passing.
 
 The installed pyHanko 0.37.0 source explicitly documents that its xref stream
 reuse restriction is stricter than the PDF specification. Its motivation is
@@ -90,6 +87,8 @@ All 26 Python tests passed, including compact synthetic compressed xref-reuse
 PDFs: valid signatures pass; unsigned documents, changed signed content, altered
 CMS signatures and later incremental updates fail. Other strict errors do not
 trigger fallback, and encrypted compatibility input is rejected. The original
-synthetic PDFBox/iText contract also passes the updated checker. The user can
-recheck their existing downloaded PDF with the updated executable; no website
-deployment or fresh signature is required for this integrity check.
+synthetic PDFBox/iText contract also passes the updated checker. The user then
+rechecked the same downloaded contract and reported a pass. No website deployment
+or fresh signature was required. The explicit false trust, revocation and
+expected-document/account fields mean those checks are outside this tool's
+scope, not that the certificate or account was found invalid.
