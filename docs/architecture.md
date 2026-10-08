@@ -1,8 +1,9 @@
 # Let's Peppol eID Bridge: first implementation slice
 
 Status: experimental Windows x64 code and test tooling. The private-DLL signing
-milestone passed on one clean laptop; the formal clean-machine and KYC gates are
-still open. No installer has been added.
+milestone and practical cancellation/card-removal checks passed on one clean
+laptop, as reported by the user. Runtime/source selection and cross-project KYC
+assurance evidence remain release items. No installer has been added.
 
 The intended route remains the existing website -> web-eid.js -> upstream
 extension -> Web eID native protocol -> libelectronic-id -> Belgian PKCS#11 ->
@@ -27,8 +28,10 @@ ACLs or make a developer's test directory suitable for production.
 
 Windows loader flags constrain static dependency resolution. They do not sandbox
 middleware code, override already loaded dependency modules, or control later
-`LoadLibrary` calls made inside middleware. Process tracing on a clean machine is
-still required. [Windows loader reference](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexw).
+`LoadLibrary` calls made inside middleware. The successful clean-install test
+establishes practical dependency sufficiency for the tested package; tracing is
+available for diagnosing unexpected loads during release engineering.
+[Windows loader reference](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexw).
 
 The native probe shares the library loader and calls `C_GetFunctionList`,
 `C_Initialize`, slot/token enumeration and `C_Finalize`, without PIN or identity

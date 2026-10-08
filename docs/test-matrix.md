@@ -8,7 +8,10 @@ Clean physical laptop report, 2026-10-04: Windows 11 Home x64 (10.0.26300),
 internal card reader and optional external USB reader. The user's preflight
 reported smart-card service running and no Belgian DLL in System32/SysWOW64 or
 Belgian middleware uninstall entry. These checks do not rule out every driver,
-registry setting or previously installed component. The local PoC archive used
+registry setting or previously installed component. The clean-install report
+and successful operations are accepted as practical dependency evidence for
+this Windows x64 PoC. No additional module trace is requested from the tester.
+The local PoC archive used
 the fixed `C:/LetsPeppolPoC/beidpkcs11.dll` path. The reported certificate
 fingerprint is intentionally omitted from this repository.
 
@@ -23,11 +26,12 @@ fingerprint is intentionally omitted from this repository.
 | Full native build | PASS in Windows CI | Portable Windows x64 PoC workflow built and ran tests; archive included MSVC runtime and was hash-verified after extraction |
 | T1 stock app + system middleware + card | PASS, preliminary | Installed Web eID 2.8.0 retrieved the signing certificate and signed the fixed SHA-256 digest; independent RSA PKCS#1 v1.5 verification passed after private PIN entry. Repeat on the plan's pinned version before final gate. |
 | T2 current staging KYC | NOT RUN | Trace existing backend acceptance and redacted evidence |
-| POC-1 private DLL on clean Windows | PASS, user-reported | Private DLL loaded; `C_GetFunctionList`, `C_Initialize`, slot enumeration and `C_Finalize` returned CKR_OK with the system DLL absent. Loaded-module trace still needed. |
+| POC-1 private DLL on clean Windows | PASS, user-reported | Private DLL loaded; `C_GetFunctionList`, `C_Initialize`, slot enumeration and `C_Finalize` returned CKR_OK with the system DLL absent. Clean-install signing/browser/PDF results establish practical dependency sufficiency for the tested package. |
 | POC-2 Belgian token | PASS, user-reported | With the card inserted, private-DLL probe returned `tokens_present=1`, `C_GetTokenInfo=CKR_OK`, and exit code 0. The earlier zero-token/exit-3 result was with the card absent. Token identity is not logged. |
 | POC-3 signing certificate | PASS, preliminary | Private-path Web eID retrieved a parseable signing certificate used for successful signature verification. The route-only diagnostic reported `belgian-pkcs11` and `certificate_retrieved=true`. Card ownership/subject and chain trust were not independently checked. |
-| POC-4 PIN signature and verification | PASS, happy path | One initial native request failed; three later runs produced independently verified RSA/SHA-256 PKCS#1 v1.5 signatures after local PIN entry. Wrong PIN/cancellation not tested; do not automate PIN attempts. |
-| POC-5 removal/reinsertion | PARTIAL | User reattached USB reader and subsequent signing continued. Removal before/during operation and recovery are untested. |
+| POC-4 PIN signature and verification | PASS, happy path | One initial native request failed; three later runs produced independently verified RSA/SHA-256 PKCS#1 v1.5 signatures after local PIN entry. Cancellation separately reported tested on 2026-10-08; wrong-PIN behavior is not claimed. |
+| Native cancellation | PASS, user-reported, 2026-10-08 | User reports cancellation already tested in response to the proposed failure/retry check; detailed dialog/timing evidence was not collected. No repeat requested. |
+| POC-5 card removal/reinsertion | PASS, user-reported, 2026-10-08 | User reports card removal already tested in response to the proposed removal/recovery check. Earlier reader reattachment/signing also worked. Exact removal timings were not collected; no repeat requested. |
 | Native KYC contract signing | PASS, user-reported, 2026-10-08 | User reports signing and successful KYC/registration for the intended company and director, with a downloaded final PDF |
 | Downloaded KYC PDF integrity | PASS, user-reported, 2026-10-08 | One signature; intact signed bytes, valid cryptographic signature and whole-file coverage all true. Targeted xref compatibility used; original parsing restriction confirmed |
 | KYC certificate trust/identity/account binding | NOT INDEPENDENTLY VERIFIED | Site success reported for intended company/director; deployed chain/revocation policy and intended-document/account binding remain to be verified |
@@ -39,21 +43,26 @@ fingerprint is intentionally omitted from this repository.
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,
 retrieved a certificate and returned independently verified signatures. Formal
-Gate A sign-off still needs loaded-module/dependency evidence and the remaining
-POC-4 negative case. Gate B
+Gate A's practical clean-Windows/card-operation checks are accepted as passed
+for the tested package, including user-reported cancellation and card removal.
+Exact selected runtime/source correspondence and distributable dependency
+inventory remain release-engineering work, not additional manual PoC tests.
+Gate B
 (actual KYC assurance) is **not passed**. The mathematical signature checker tests
 neither PDF trust nor CA trust/revocation. These backend assurance items are
 owned by the KYC project; existing KYC tests/configuration evidence may supply
 them. They do not require new native-app validators. Windows 10, ARM64, Linux
 and macOS have no support claim.
 
-Remaining bridge negative/manual matrix: absent reader/card, unsupported card,
-wrong or blocked PIN, cancellation, removal, two readers/cards, missing or corrupt
-private DLL despite installed middleware, unsupported browser and multiple card
-generations. KYC-owned acceptance cases: expired/revoked cert,
+Additional bridge coverage, outside the completed manual PoC: unsupported card,
+wrong or blocked PIN, two simultaneous readers/cards, unsupported browser and
+multiple card generations. Missing/private-DLL loader failures already have
+automated coverage. No further manual PoC tests are requested at this stage.
+KYC-owned acceptance cases: expired/revoked cert,
 changed PDF/signature/digest, substituted certificate/finalization reference,
 replay/cross-account submission and client-provided wrong name.
-Use a disposable test card for retry-exhaustion tests with human supervision.
+Any future retry-exhaustion testing would require a disposable test card with
+human supervision; it is not part of the current tester request.
 
 Both Windows CI workflows passed remotely. The application pins the published
 library patch so a fresh checkout can run the tests. The private-DLL test archive

@@ -28,8 +28,9 @@ zero-token result was obtained with the card absent.
 The follow-up diagnostic captured the native application's certificate-retrieval
 route as `belgian-pkcs11`. This is direct evidence that Web eID used the private
 module for certificate retrieval, beyond merely loading it. The preceding
-signature runs used the same build and card; their exact loaded-module inventory
-still awaits tracing.
+signature runs used the same build and card. Their exact loaded-module inventory
+was not recorded, but the clean-install result is accepted as practical evidence
+that this test package supplies sufficient runtime dependencies.
 These results support private operation on this machine, but do not establish
 the exact selected binary/source pair, a complete absence of middleware state,
 the loaded-module inventory, or support for every reader/card generation. No
@@ -55,8 +56,12 @@ handlers. `src/common/dynamiclib.cpp` and `src/cardlayer/pinpadlib.cpp` contain
 additional dynamic-loading behavior. Their presence is an investigation item,
 not proof of mandatory global installation or of safe private operation.
 
-Next evidence: select a reproducible official binary/source pair; inspect
-loaded modules and transitive dependencies during PIN/signing on clean Windows;
-test removal and
-reinsertion. Do not infer registry independence or minimum bundle size from
-source/import tables alone.
+On 2026-10-08, the user additionally reported cancellation and card removal
+already tested. No repeat of these manual PoC checks or a new module trace is
+requested. These reports do not extend support to untested readers/cards.
+
+Remaining engineering work: select the distributable binary/source pair and
+record the exact files and dependencies included in the installer. Module
+tracing remains an available diagnostic if an unexplained dependency problem
+appears; it is not an outstanding request to this tester. The finished installer
+will need installation/uninstallation verification because it is a new artifact.

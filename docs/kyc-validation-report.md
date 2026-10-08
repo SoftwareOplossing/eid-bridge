@@ -21,9 +21,11 @@ gate; duplicating the validators in the native app is unnecessary.
 The bridge's integration responsibility is to preserve the existing certificate,
 digest and signature protocol while replacing installed middleware with the
 private runtime. The successful browser transaction and final-PDF verification
-provide evidence for that path. Remaining bridge work concerns runtime/dependency
-provenance, constrained DLL loading, native failure/recovery behavior and release
-installation. The plan's broader Gate B remains a cross-project acceptance
+provide evidence for that path. The user also reports cancellation and card
+removal tested; clean-install success is accepted as practical runtime dependency
+evidence for this PoC. Remaining bridge work concerns selecting the distributable
+runtime/source, documenting packaged files and creating release installation.
+The plan's broader Gate B remains a cross-project acceptance
 requirement, rather than a mandate to change KYC code in this repository.
 
 ## KYC-owned acceptance evidence
@@ -60,15 +62,17 @@ status and reproducible test descriptions here. Never collect or share the PIN.
 | Untrusted/expired certificate | Rejected | NOT RUN | Controlled backend test |
 | Replayed/cross-account transaction | Rejected | NOT RUN | Fresh reference and account binding must be proven |
 | Wrong director/client identity | No automatic ownership granted | NOT RUN | Preserve existing manual-review contract |
-| Cancelled native signature | No completed transaction; retry can recover | NOT RUN | Human cancels; no deliberate wrong-PIN attempts |
+| Cancelled native signature | Operation aborts cleanly | PASS, user-reported | User reports cancellation already tested on 2026-10-08; detailed timing/dialog evidence not collected |
+| Card removal/recovery | Operation fails cleanly and reinsertion permits recovery | PASS, user-reported | User reports card removal already tested on 2026-10-08; exact removal timings not collected |
 
 Backend source findings and remaining assurance issues are recorded in
 [current-kyc-flow.md](current-kyc-flow.md). This report does not assert that
 the production configuration uses the source defaults. Gate B remains open
 for cross-project acceptance evidence; existing KYC validation can supply it.
 This does not expand the bridge implementation to own those validators.
-Formal Gate A still requires clean-laptop module/dependency evidence and
-native negative testing.
+Gate A's practical clean-machine/card-operation checks are accepted as passed
+for the tested package. Further manual PoC repetition is unnecessary; exact
+runtime/source inventory and installer verification remain engineering work.
 
 ## PDF interoperability reproduction and checker compatibility
 

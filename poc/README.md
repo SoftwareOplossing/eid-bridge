@@ -7,8 +7,10 @@ independently verified signatures on a clean Windows 11 x64 laptop without the
 Belgian middleware uninstall entry or the usual system DLLs. A repeat private-DLL
 probe with the card inserted found one token and exited successfully. The
 route-only diagnostic reported `belgian-pkcs11` for certificate retrieval.
-Loaded-module tracing, negative hardware tests, exact binary source
-correspondence and full KYC assurance remain open. On 2026-10-08, the user
+The clean-install result establishes practical runtime dependency sufficiency
+for the tested package. Cancellation and card removal were also reported tested
+on 2026-10-08; no repeat manual PoC tests are requested. Exact binary source
+correspondence and full KYC assurance remain release items. On 2026-10-08, the user
 reported successful browser signing and KYC/registration for the intended
 company/director; the downloaded PDF passed all offline integrity checks with
 xref compatibility. Certificate trust, revocation and document/account binding
