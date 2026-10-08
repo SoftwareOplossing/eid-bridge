@@ -46,7 +46,8 @@ fingerprint is intentionally omitted from this repository.
 | MSI extracted app startup/logging | PASS locally | Framed version 2.11.0+0 and quit responses; automatic current-user Documents log updated; no card/PIN used |
 | MSI 0.1.0 physical install/uninstall | PASS, user-reported | User confirmed installation/uninstallation works; no detailed Windows Installer log was collected. Upgrade not yet tested |
 | MSI 0.1.1 extension request authoring | PASS locally | Actual MSI registry tables and conditions: official Edge/Chrome store URLs, 32-bit view, own request creation/upgrade, pre-existing request preservation and different-source rejection; no force-install policy added |
-| MSI 0.1.1 automatic browser extension install/upgrade | NOT RUN | Browser confirmation and new request behavior need a target-machine check; existing signing/cancellation/card-removal results remain accepted |
+| MSI 0.1.1 Edge store request on laptop | PASS, user-reported | Initial missing key was before the application was installed. After rerunning the installer, the user confirmed the 32-bit HKLM Edge Web eID key contains update_url=https://edge.microsoft.com/extensionwebstorebase/v1/crx. No installer change was needed |
+| MSI 0.1.1 automatic browser extension download/enable/upgrade | NOT CONFIRMED | Edge's actual download/enable after browser restart remains to be confirmed. A registry request alone is not successful browser installation. Existing signing/cancellation/card-removal results remain accepted |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,
