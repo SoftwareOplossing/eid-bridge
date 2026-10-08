@@ -48,15 +48,26 @@ function Test-OwnManifest {
     return ((Get-Content -LiteralPath $manifestPath -Raw) -eq $manifestJson)
 }
 
+function Test-EmptyHostKey {
+    if (-not (Test-Path -LiteralPath $registryKey)) { return $false }
+    $key = Get-Item -LiteralPath $registryKey
+    return ($key.ValueCount -eq 0 -and $key.SubKeyCount -eq 0)
+}
+
 $existing = @($otherRegistrations | Where-Object { Test-Path -LiteralPath $_ })
 $ownRegistration = (Get-HostValue $registryKey) -eq $manifestPath -and (Test-OwnManifest)
+# The previous helper could leave an empty key after writing this manifest.
+# Recover only that exact state; preserve unrelated registrations and key data.
+$partialRegistration = (Test-OwnManifest) -and (Test-EmptyHostKey)
+$canUseRegistration = $ownRegistration -or $partialRegistration
 
 switch ($Action) {
     'Status' {
         [pscustomobject]@{
             browser = $Browser
             registered_to_this_poc = [bool]$ownRegistration
-            registration_conflict = [bool]($existing.Count -gt 0 -and -not ($existing.Count -eq 1 -and $ownRegistration))
+            incomplete_registration = [bool]$partialRegistration
+            registration_conflict = [bool]($existing.Count -gt 0 -and -not ($existing.Count -eq 1 -and $canUseRegistration))
             app_present = Test-Path -LiteralPath $appPath
             private_dll_present = Test-Path -LiteralPath (Join-Path $PSScriptRoot 'beidpkcs11.dll')
         } | ConvertTo-Json
@@ -67,7 +78,7 @@ switch ($Action) {
         if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'beidpkcs11.dll'))) {
             throw "beidpkcs11.dll is missing beside this script."
         }
-        if ($existing.Count -gt 0 -and -not ($existing.Count -eq 1 -and $ownRegistration)) {
+        if ($existing.Count -gt 0 -and -not ($existing.Count -eq 1 -and $canUseRegistration)) {
             throw "A Web eID native host is already registered. No registration was changed."
         }
         if (Test-Path -LiteralPath $manifestPath) {
@@ -76,15 +87,26 @@ switch ($Action) {
             [System.IO.File]::WriteAllText($manifestPath, $manifestJson, [System.Text.UTF8Encoding]::new($false))
         }
         if (-not $ownRegistration) {
-            New-Item -Path $registryKey -Force | Out-Null
-            (Get-Item -LiteralPath $registryKey).SetValue('', $manifestPath, [Microsoft.Win32.RegistryValueKind]::String)
+            $keyAlreadyExisted = Test-Path -LiteralPath $registryKey
+            try {
+                New-Item -Path $registryKey -Force | Out-Null
+                Set-Item -LiteralPath $registryKey -Value $manifestPath -Type String
+                if ((Get-HostValue $registryKey) -ne $manifestPath) {
+                    throw 'The native host registry value was not saved.'
+                }
+            } catch {
+                if (-not $keyAlreadyExisted -and (Test-EmptyHostKey)) {
+                    Remove-Item -LiteralPath $registryKey
+                }
+                throw
+            }
         }
         Write-Output "Registered $hostName for $Browser in the current user's profile."
         break
     }
     'Remove' {
         if (Test-Path -LiteralPath $registryKey) {
-            if (-not $ownRegistration) { throw "The registration or manifest differs from this PoC. Nothing was removed." }
+            if (-not $canUseRegistration) { throw "The registration or manifest differs from this PoC. Nothing was removed." }
             Remove-Item -LiteralPath $registryKey
         }
         if (Test-Path -LiteralPath $manifestPath) {

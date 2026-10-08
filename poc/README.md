@@ -55,6 +55,23 @@ After the check, remove this test registration with:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\register-test-host.ps1 -Action Remove
 ```
 
+The 2026-10-08 helper fixes a registry write failure in the first version.
+`Get-Item` returned a read-only registry handle, so its `SetValue` call left an
+empty key and a valid PoC manifest. The corrected helper uses `Set-Item` and
+can repair that exact partial state by rerunning `-Action Install`, or clean it
+up with `-Action Remove`. Use normal PowerShell under the same Windows user
+who runs Edge; administrator privileges are unnecessary. Other registrations
+and empty keys carrying unrelated values or subkeys remain protected.
+
+The helper's Windows PowerShell regression test remaps HKCU/HKLM drives to a
+temporary GUID registry namespace. It exercises actual default-value writes,
+repeat installation, partial-state repair/removal, conflicts and failed-write
+rollback without touching real browser registrations:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\poc\tests\test_host_registration.ps1
+```
+
 This is not the production one-package installer. The extension currently
 comes from the browser store; its installation/activation behavior must be
 resolved for release. The live onboarding check does not prove the backend KYC
