@@ -21,16 +21,13 @@ Chrome: https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfepon
 Firefox: https://addons.mozilla.org/firefox/addon/web-eid-webextension/
 Only Edge has been exercised with the current Let's Peppol PoC.
 
-The installer Finish screen recognizes your Windows default HTTPS browser:
-Edge, Chrome or Firefox. It displays that browser's setup/restart instructions
-and offers to open its official Web eID store page. Save any work before
-restarting. In Edge, type edge://restart in the address bar; in Chrome, type
-chrome://restart. For Firefox, install the extension, then close and reopen it.
-The installer does not close browser windows or restart them automatically.
-For an unrecognized browser or missing default, Finish opens these instructions.
+The installer Finish screen reminds you to save your work and restart your
+browser, and offers to open Let's Peppol onboarding. The website offers the
+matching store link when Web eID is unavailable in the browser visiting the
+page. Firefox installation remains manual. The installer does not close browser
+windows or restart them automatically. Silent installs do not launch anything.
 Launch the MSI normally as your own Windows user and approve its administrator
-prompt. Explicitly running the whole MSI as another user detects that user's
-browser instead. Silent installs do not launch anything.
+prompt.
 
 Restart the browser and open https://be.letspeppol.org/onboarding . The Start menu
 contains an onboarding link, these instructions and an Open Documents for logs

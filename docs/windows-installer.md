@@ -1,6 +1,6 @@
 # Private Windows installer
 
-`build/installer/LetsPeppol-eID-Bridge-0.1.2-windows-x64-test.msi` is an unsigned
+`build/installer/LetsPeppol-eID-Bridge-0.1.3-windows-x64-test.msi` is an unsigned
 private Windows 11 x64 test package. It bundles the bridge, Qt/VC++/OpenSSL
 runtimes and the tested Belgian PKCS#11 DLL. It installs under
 `C:\Program Files\LetsPeppol eID Bridge` with administrator approval; no global
@@ -29,23 +29,26 @@ required; existing browser policies and a previously rejected/uninstalled extern
 extension can prevent installation. Store links in README.txt provide recovery.
 Firefox remains a manual store install in this version.
 
-Version 0.1.2 reads the installing user's default HTTPS browser and adapts the
-Finish screen for Edge, Chrome or Firefox. Edge/Chrome instructions request a
-restart using `edge://restart` / `chrome://restart` in the browser's address bar,
-followed by approving/enabling Web eID. Firefox instructions request a manual
-add-on installation, then closing and reopening Firefox. A checked Finish option
-opens the selected browser's official Web eID store page through Windows' default
-URL handler. Unknown/missing browser choices open the installed README instead.
-Save work before restarting. The installer does not terminate browser processes
-or claim it has restarted them; actual restart remains a user action.
+Version 0.1.3 simplifies Finish to a reminder to save work, restart the browser
+and enable Web eID when prompted. A checked Finish option opens Let's Peppol
+onboarding through the default URL handler. The installer leaves browser
+selection to the website, which can identify the browser actually visiting it.
+It does not terminate browser processes; restart remains a user action.
 
 Launch the MSI normally and approve the machine installation's administrator
-prompt. Detection and launch belong to the UI session. Explicitly launching the
-whole MSI as another user uses that user's browser settings. Maintenance,
+prompt. The optional onboarding launch belongs to the UI session. Maintenance,
 uninstall, silent installs and an unchecked Finish option do not launch anything.
-Default-browser associations are read only; extension requests still cover both
-Edge and Chrome regardless of which browser is default. There is no new helper
-executable or upstream application change.
+Extension requests cover both Edge and Chrome. There is no default-browser
+registry search, new helper executable or upstream application change.
+
+Local changes in `C:\LetsPeppol\letspeppol\app\ui` add one shared Web eID setup
+component to onboarding and email confirmation. An extension-unavailable error
+offers the visiting browser's official store (or a choice for unknown browsers).
+A native-unavailable error offers desktop-application setup guidance instead.
+Cancellation/card errors retain existing handling. Store links open in a new tab;
+email confirmation reminds users to reopen their email link after a reload or
+restart because the token is deliberately removed from the URL. These website
+changes are local and have not been deployed. Firefox installation remains manual.
 
 Browser documentation: [Edge external installation](https://learn.microsoft.com/en-us/microsoft-edge/extensions/developer-guide/alternate-distribution-options),
 [Chrome external installation and confirmation](https://developer.chrome.com/docs/extensions/how-to/distribute/install-extensions).
@@ -92,7 +95,7 @@ dotnet tool install wix --version 4.0.6 --tool-path build/tools/wix
 build/tools/wix/wix.exe extension add --global WixToolset.UI.wixext/4.0.6
 build/tools/wix/wix.exe extension add --global WixToolset.Util.wixext/4.0.6
 poc/scripts/build-installer.ps1 -RuntimeDirectory build/installer-help-app-runtime -MiddlewareDll build/clean-pc-test-kit/beidpkcs11.dll -MiddlewareSha256 b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 -Wix build/tools/wix/wix.exe
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-0.1.2-windows-x64-test.msi
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-0.1.3-windows-x64-test.msi
 ```
 
 The builder requires NATIVE-BUILD.json for the executable-directory native build,
@@ -108,12 +111,13 @@ against the reconstructed web-eid.exe; it requests only version/quit and checks
 the Documents log. WiX 4's decompiler can warn about MsiLockPermissionsEx while
 extracting; the independent MSI-table test checks the actual ACL row.
 
-The MSI-table test also evaluates the authored Finish properties/conditions for
-Edge, Chrome (including profile suffixes and case), Firefox's suffixed ProgID,
-unknown browsers and a missing default. It checks launch ordering, checkbox
-opt-out, UI-only actions and maintenance/uninstall exclusion without launching
-a browser or changing the system. The new Finish screen still needs a physical
-install/upgrade check on the test laptop.
+The MSI-table test checks the onboarding target, launch ordering, checkbox
+opt-out, UI-only action and maintenance/uninstall exclusion without launching
+a browser or changing the system. The Finish screen still needs a physical
+install/upgrade check on the test laptop. Website verification uses focused
+Vitest recovery/rendering tests and a Vite production build. Pre-existing invoice
+translation omissions/order problems prevent a clean whole-project translation
+lint; new setup messages are validated in all four languages.
 
 BUILD-INFO.json, NATIVE-BUILD.json, SHA256SUMS.txt and licence notices are included
 in the package. This is not a public production release: it is unsigned, matching

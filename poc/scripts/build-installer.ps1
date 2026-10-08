@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string]$RuntimeDirectory,
     [Parameter(Mandatory)][string]$MiddlewareDll,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$MiddlewareSha256,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.2',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.3',
     [string]$Wix = 'wix',
     [string]$OutputDirectory = '',
     [switch]$Fixture

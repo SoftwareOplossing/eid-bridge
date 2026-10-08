@@ -51,6 +51,9 @@ fingerprint is intentionally omitted from this repository.
 | MSI 0.1.2 default-browser Finish flow | PASS locally, 2026-10-09 | Actual MSI conditions and property values checked for Edge, Chrome, suffixed/case-insensitive Chrome, suffixed Firefox, unknown/missing defaults. Matching official stores/instructions, checkbox opt-out, launch-before-dismiss ordering, immediate user-context launch and silent/maintenance/removal exclusion passed; no browser launched |
 | MSI 0.1.2 packaged payload/startup | PASS locally, 2026-10-09 | WiX validation, 83 extracted CAB files and hashes/manifests verified; extracted app returned framed version/quit and updated automatic Documents logging without a card or PIN |
 | MSI 0.1.2 physical Finish flow/upgrade | NOT RUN | New restart reminder and store-page launch still need checking on the test laptop. Browser restart itself is performed by the user |
+| MSI 0.1.3 simplified Finish flow/payload | PASS locally, 2026-10-09 | Restart reminder and onboarding launch; no default-browser search. WiX validation, UI launch ordering/opt-out/maintenance exclusion, extension ownership and 83 extracted payload hashes passed |
+| Website Web eID recovery | PASS locally, 2026-10-09 | 19 focused Vitest cases: visiting browser selection, extension/native distinction, card/cancellation exclusions, director/sign retry, rendered new-tab store links and email-link recovery instructions. Vite production build passed. New translations validated in EN/NL/FR/DE; existing invoice translation/order lint issues remain |
+| MSI 0.1.3 physical Finish/website rollout | NOT RUN | New Finish flow needs a laptop check. Website changes exist locally in letspeppol/app/ui and are not deployed |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,
