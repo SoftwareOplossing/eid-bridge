@@ -68,9 +68,20 @@ foreach ($line in Get-Content -LiteralPath (Join-Path $output 'SHA256SUMS.txt'))
 }
 if ($checked.Count -ne $files.Count - 1) { throw 'A payload file was omitted from the hash manifest.' }
 $build = Get-Content -LiteralPath (Join-Path $output 'NATIVE-BUILD.json') -Raw | ConvertFrom-Json
+$package = Get-Content -LiteralPath (Join-Path $output 'BUILD-INFO.json') -Raw | ConvertFrom-Json
 if ($build.module_resolution -ne 'APP_DIRECTORY' -or
-    (Get-FileHash -LiteralPath (Join-Path $output 'web-eid.exe') -Algorithm SHA256).Hash -ne $build.app_sha256) {
+    $package.app_unsigned_sha256 -ne $build.app_sha256 -or
+    (Get-FileHash -LiteralPath (Join-Path $output 'web-eid.exe') -Algorithm SHA256).Hash -ne $package.app_sha256) {
     throw 'Extracted application differs from verified installer build.'
+}
+if ($package.application_signed) {
+    $signature = Get-AuthenticodeSignature -LiteralPath (Join-Path $output 'web-eid.exe')
+    if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate -or
+        $signature.SignerCertificate.GetNameInfo([Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false) -cne $package.publisher) {
+        throw 'Packaged application lacks the expected timestamped publisher signature.'
+    }
+} elseif ($package.app_sha256 -ne $build.app_sha256) {
+    throw 'Unsigned package changed the original native application.'
 }
 $hostManifest = Get-Content -LiteralPath (Join-Path $output 'eu.webeid.json') -Raw | ConvertFrom-Json
 if ($hostManifest.name -ne 'eu.webeid' -or $hostManifest.path -ne 'web-eid.exe' -or $hostManifest.type -ne 'stdio' -or

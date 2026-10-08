@@ -1,5 +1,37 @@
 # Release gates and sequence
 
+## Current release preparation
+
+The professional product name is **Let's Peppol eID Bridge**. Version 1.0.0
+uses the same upgrade identity and installation directory as 0.1.x, with
+customer instructions and licence information replacing the test wording.
+The locally built `1.0.0-windows-x64-unsigned-candidate.msi` passed WiX validation,
+the MSI table/condition checks and all 84 extracted payload hash checks. The
+native executable and Belgian DLL match the previously tested hashes; no new
+native hardware test is requested for these packaging changes.
+
+Company signing is now supported by the installer builder. It signs the staged
+application before packaging, signs the MSI last, verifies the expected publisher
+and timestamp, and retains both original and signed application hashes. Five
+negative signing preflight cases passed without contacting the service. Real
+service signing remains untested pending company account validation. Follow
+[company code signing](company-code-signing.md); no additional fork is needed.
+
+The selected Belgian DLL now has verified official binary provenance: the
+official `BeidMW_64_5.1.34.6350.msi` contains the identical 5.1.34.6213 x64 DLL.
+Matching source remains unresolved. A public-history commit with revision count
+6213 (`7f0ed21dba8017e5c1fa58bd13664bc087211905`) has base version **5.1.23**, not
+5.1.34, so it cannot be assumed to match the selected binary. Preserve the tested
+DLL while obtaining an authoritative matching source revision/build recipe.
+
+The candidate remains private until company signing, corresponding middleware
+source and the complete dependency notice/redistribution inventory are resolved.
+The builder records `public_release=false` even when a candidate is signed;
+signing alone does not satisfy redistribution obligations. The website fallback
+changes remain local and are not deployed by building the installer.
+
+## Existing evidence and release sequence
+
 An unsigned private Windows 11 x64 test MSI is built. The portable package passed
 the user's clean-Windows signing/browser/PDF path, and cancellation/card removal
 were reported tested. No additional manual PoC test is requested now. Installing,

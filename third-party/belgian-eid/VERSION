@@ -1,3 +1,3 @@
-No runtime selected or bundled.
-Investigated source: cf2d593181c56de33198993278d64990292772c1
-Observed installed baseline DLL: 5.1.34.6213 (corresponding source not yet identified)
+Selected private Windows x64 candidate: 5.1.34.6213
+Official containing installer: BeidMW_64_5.1.34.6350.msi
+Exact corresponding source: not yet verified

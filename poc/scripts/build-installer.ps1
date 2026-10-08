@@ -5,13 +5,23 @@ param(
     [Parameter(Mandatory)][string]$RuntimeDirectory,
     [Parameter(Mandatory)][string]$MiddlewareDll,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$MiddlewareSha256,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.3',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '1.0.0',
     [string]$Wix = 'wix',
     [string]$OutputDirectory = '',
+    [string]$SignTool = '',
+    [string]$SigningDlib = '',
+    [string]$SigningMetadata = '',
+    [string]$ExpectedPublisher = '',
     [switch]$Fixture
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path "$PSScriptRoot/../..").Path
+$signingParameters = @($SignTool,$SigningDlib,$SigningMetadata,$ExpectedPublisher)
+$signingCount = @($signingParameters | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count
+if ($signingCount -notin 0,4 -or ($Fixture -and $signingCount)) {
+    throw 'Signing requires all four signing parameters and a real native build.'
+}
+$signing = $signingCount -eq 4
 $runtime = (Resolve-Path -LiteralPath $RuntimeDirectory).Path
 $middleware = (Resolve-Path -LiteralPath $MiddlewareDll).Path
 $nativeInfo = $null
@@ -23,10 +33,10 @@ if (-not $Fixture) {
     }
 }
 if ((Get-FileHash -LiteralPath $middleware -Algorithm SHA256).Hash -ne $MiddlewareSha256) {
-    throw 'Middleware DLL does not match the recorded test candidate.'
+    throw 'Middleware DLL does not match the recorded candidate.'
 }
 if (-not $Fixture -and (Get-AuthenticodeSignature -LiteralPath $middleware).Status -ne 'Valid') {
-    throw 'The test middleware candidate must have a valid Authenticode signature.'
+    throw 'The middleware candidate must have a valid Authenticode signature.'
 }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'build/installer' }
 $work = Join-Path $root ('build/installer-work-' + [guid]::NewGuid().ToString('N'))
@@ -51,6 +61,11 @@ foreach ($file in Get-ChildItem -LiteralPath $runtime -Recurse -File) {
     Copy-Item -LiteralPath $file.FullName -Destination $destination
 }
 Copy-Item -LiteralPath $middleware -Destination (Join-Path $payload 'beidpkcs11.dll') -Force
+if ($signing) {
+    & "$PSScriptRoot/sign-artifact.ps1" -File (Join-Path $payload 'web-eid.exe') `
+        -SignTool $SignTool -SigningDlib $SigningDlib -SigningMetadata $SigningMetadata -ExpectedPublisher $ExpectedPublisher
+}
+$appHash = (Get-FileHash -LiteralPath (Join-Path $payload 'web-eid.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
 foreach ($required in 'web-eid.exe','Qt6Core.dll','Qt6Gui.dll','Qt6Widgets.dll',
     'platforms/qwindows.dll','libcrypto-3-x64.dll','libssl-3-x64.dll',
     'msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll','beidpkcs11.dll') {
@@ -61,6 +76,7 @@ New-Item -ItemType Directory -Path $licenses -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $licenses 'Web-eID-MIT.txt')
 Copy-Item -LiteralPath (Join-Path $root 'lib/libelectronic-id/LICENSE') -Destination (Join-Path $licenses 'libelectronic-id-MIT.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/belgian-eid/LICENSE') -Destination (Join-Path $licenses 'Belgian-eID-LGPL.txt')
+Copy-Item -LiteralPath (Join-Path $root 'third-party/belgian-eid/SOURCE.md') -Destination (Join-Path $licenses 'Belgian-eID-source.md')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/lets-peppol/LICENSE') -Destination (Join-Path $licenses 'LetsPeppol-MIT.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/LGPL-3.0-only.txt') -Destination (Join-Path $licenses 'LGPL-3.0.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/GPL-3.0-only.txt') -Destination (Join-Path $licenses 'GPL-3.0.txt')
@@ -74,7 +90,11 @@ WriteUtf8 (Join-Path $payload 'eu.webeid.firefox.json') ((Get-Content -LiteralPa
 WriteUtf8 (Join-Path $payload 'Onboarding.url') "[InternetShortcut]`r`nURL=https://be.letspeppol.org/onboarding`r`n"
 Copy-Item -LiteralPath (Join-Path $root 'install/installer-readme.txt') -Destination (Join-Path $payload 'README.txt')
 $metadata = [ordered]@{
-    package_version = $Version; test_build = $true; fixture = [bool]$Fixture
+    package_version = $Version; release_candidate = $true; public_release = $false; fixture = [bool]$Fixture
+    application_signed = [bool]$signing
+    publisher = $(if ($signing) { $ExpectedPublisher } else { $null })
+    app_sha256 = $appHash
+    app_unsigned_sha256 = $(if ($nativeInfo) { $nativeInfo.app_sha256 } else { $appHash })
     app_commit = $(if ($nativeInfo) { $nativeInfo.app_commit } else { 'fixture' })
     library_commit = $(if ($nativeInfo) { $nativeInfo.library_commit } else { 'fixture' })
     middleware_version = (Get-Item -LiteralPath $middleware).VersionInfo.FileVersion
@@ -129,14 +149,33 @@ foreach ($browser in 'Edge','Chrome','Firefox') {
     }
 }
 $condition = Xml ($conditions -join ' AND ')
-$message = Xml 'A different Web eID native host is registered. Remove the earlier PoC registration with register-test-host.ps1 -Action Remove, or uninstall the conflicting native app, then retry. No existing host was replaced.'
+$message = Xml 'A different Web eID desktop application is registered. Uninstall it before installing this application. If you previously used the portable version, remove its registration using register-test-host.ps1 -Action Remove. Help: be.letspeppol.org/onboarding.'
 WriteUtf8 (Join-Path $work 'hosts.wxs') ('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"><Fragment>{0}<Launch Condition="{1}" Message="{2}" /><ComponentGroup Id="NativeHosts">{3}</ComponentGroup></Fragment></Wix>' -f ($searches -join "`n"),$condition,$message,($hosts -join "`n"))
 $name = if ($Fixture) { 'FIXTURE-NOT-FOR-USE' } else { 'LetsPeppol-eID-Bridge' }
-$msi = Join-Path $OutputDirectory "$name-$Version-windows-x64-test.msi"
+$kind = if ($signing) { 'signed-candidate' } else { 'unsigned-candidate' }
+$msi = Join-Path $work "$name-$Version-windows-x64-$kind.msi"
 & $Wix build -nologo -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
     -d "RepoRoot=$root" -d "Version=$Version" `
     (Join-Path $root 'install/lets-peppol.wxs') (Join-Path $root 'install/browser-finish.wxs') `
     (Join-Path $work 'payload.wxs') (Join-Path $work 'hosts.wxs') -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'WiX MSI build or validation failed.' }
+if ($signing) {
+    & "$PSScriptRoot/sign-artifact.ps1" -File $msi -SignTool $SignTool `
+        -SigningDlib $SigningDlib -SigningMetadata $SigningMetadata -ExpectedPublisher $ExpectedPublisher
+}
+# A failed build/signature check must not leave a new deliverable in the output folder.
+$destinationMsi = Join-Path $OutputDirectory ([IO.Path]::GetFileName($msi))
+Move-Item -LiteralPath $msi -Destination $destinationMsi -Force
+$msi = $destinationMsi
+$report = [ordered]@{
+    msi = [IO.Path]::GetFileName($msi)
+    msi_sha256 = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash.ToLowerInvariant()
+    application = $metadata
+    installer_signed = [bool]$signing
+    public_release = $false
+    remaining_release_requirements = @('Exact corresponding Belgian middleware source and complete dependency notices')
+}
+if (-not $signing) { $report.remaining_release_requirements += 'Company signatures for application and MSI' }
+WriteUtf8 (Join-Path $OutputDirectory "BUILD-REPORT-$Version-$kind.json") ($report | ConvertTo-Json -Depth 5)
 Write-Output "Built MSI: $msi"
 Get-FileHash -LiteralPath $msi -Algorithm SHA256

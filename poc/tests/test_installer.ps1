@@ -21,7 +21,7 @@ function Assert([bool]$condition, [string]$message) {
 }
 $properties = @{}
 foreach ($row in Rows 'SELECT `Property`, `Value` FROM `Property`' 2) { $properties[$row[0]] = $row[1] }
-Assert ($properties.ProductName -eq "Let's Peppol eID Bridge (Test)") 'Wrong product branding.'
+Assert ($properties.ProductName -eq "Let's Peppol eID Bridge") 'Wrong product branding.'
 Assert ($properties.UpgradeCode -eq '{B78C4195-034D-40D0-B28C-B0BC36B2D437}') 'Wrong upgrade identity.'
 Assert ($properties.ALLUSERS -eq '1') 'Installer must use protected machine installation.'
 Assert ($properties.ARPHELPLINK -eq 'https://be.letspeppol.org/onboarding' -and
@@ -92,7 +92,7 @@ SetProperty 'Installed' ''
 SetProperty 'REMOVE' ''
 $hostCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'A different Web eID*' })[0][0]
 $directoryCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'The installation folder*' })[0][0]
-$osCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like 'This test installer requires*' })[0][0]
+$osCondition = @(Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[1] -like "Let's Peppol eID Bridge requires*" })[0][0]
 foreach ($browser in 'EDGE','CHROME') {
     $condition = ($extensionComponents | Where-Object { $_[0] -eq ($browser.Substring(0,1) + $browser.Substring(1).ToLowerInvariant() + 'ExtensionRequest') })[2]
     # A fresh request is owned; pre-existing requests are retained without ownership.
