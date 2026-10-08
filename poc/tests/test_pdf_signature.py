@@ -3,6 +3,7 @@
 
 from datetime import datetime, timedelta, timezone
 import importlib.util
+import json
 from io import BytesIO, StringIO
 from pathlib import Path
 import socket
@@ -18,6 +19,7 @@ from cryptography.x509.oid import NameOID
 from pyhanko.pdf_utils import generic
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 from pyhanko.pdf_utils.reader import PdfFileReader
+from pyhanko.pdf_utils.misc import PdfStrictReadError
 from pyhanko.pdf_utils.writer import PdfFileWriter, PageObject
 from pyhanko.sign import signers
 from pyhanko_certvalidator.registry import SimpleCertificateStore
@@ -114,6 +116,26 @@ class PdfCheckTests(unittest.TestCase):
         with patch.object(check, 'check_pdf', side_effect=ValueError('Secret identity / contract')):
             with patch('sys.stdout', new_callable=StringIO) as output:
                 self.assertEqual(check.main(['private-path.pdf']), 1)
+                self.assertNotIn('Secret identity', output.getvalue())
+                self.assertNotIn('private-path', output.getvalue())
+
+    def test_reused_xref_stream_has_static_diagnostic(self):
+        error = PdfStrictReadError('XRef stream objects must not be clobbered in strict mode.')
+        with patch.object(check, 'check_pdf', side_effect=error):
+            with patch('sys.stdout', new_callable=StringIO) as output:
+                self.assertEqual(check.main(['private-path.pdf']), 1)
+                result = json.loads(output.getvalue())
+                self.assertEqual(result['parser_issue'], 'xref_stream_object_reused')
+                self.assertFalse(result['integrity_check_passed'])
+                self.assertNotIn('private-path', output.getvalue())
+
+    def test_other_strict_errors_do_not_disclose_payload(self):
+        error = PdfStrictReadError('Secret identity / private-path.pdf')
+        with patch.object(check, 'check_pdf', side_effect=error):
+            with patch('sys.stdout', new_callable=StringIO) as output:
+                self.assertEqual(check.main(['private-path.pdf']), 1)
+                result = json.loads(output.getvalue())
+                self.assertEqual(result['parser_issue'], 'strict_pdf_structure_rejected')
                 self.assertNotIn('Secret identity', output.getvalue())
                 self.assertNotIn('private-path', output.getvalue())
 

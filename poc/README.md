@@ -169,12 +169,17 @@ test laptop and run the separate offline checker:
 .\check-kyc-pdf.exe 'C:\path\to\signed-contract.pdf'
 ```
 
-Its JSON contains only booleans and a signature count. It reports whether the
+Its successful JSON contains only booleans and a signature count. It reports whether the
 signed bytes are intact, the CMS signature verifies, and the entire file is
 covered. `integrity_check_passed=true` requires exactly one regular signature
 and all three checks. Later legitimate signatures/timestamps/updates may need
 review; a coverage failure alone does not prove malicious tampering.
 No certificate identity, PDF content, filename or fingerprint is printed.
+Strict parsing errors include a static `parser_issue` code. The known
+`xref_stream_object_reused` failure was reproduced in the KYC backend's
+PDFBox/iText combination; see [the local fix and evidence](../docs/kyc-validation-report.md#pdf-interoperability-reproduction-and-local-fix).
+Other strict failures report `strict_pdf_structure_rejected`. Parsing stays
+strict; an error does not establish whether the cryptographic signature is valid.
 The source version runs as `python poc/scripts/check-kyc-pdf.py <pdf>` using
 `poc/pdf-requirements.txt`. No HTTP/certificate-fetching requests are enabled.
 

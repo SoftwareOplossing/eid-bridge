@@ -12,6 +12,7 @@ import sys
 logging.disable(logging.CRITICAL)
 
 from pyhanko.pdf_utils.reader import PdfFileReader
+from pyhanko.pdf_utils.misc import PdfStrictReadError
 from pyhanko.sign.validation import validate_pdf_signature
 from pyhanko.sign.validation.status import SignatureCoverageLevel
 from pyhanko_certvalidator import ValidationContext
@@ -56,6 +57,12 @@ def main(argv=None):
         # Never print an exception payload, filename, certificate or PDF content.
         report = {'integrity_check_passed': False,
                   'error': f'PDF validation failed ({type(error).__name__})'}
+        if isinstance(error, PdfStrictReadError):
+            # Classify known parser failures without disclosing their payload.
+            report['parser_issue'] = (
+                'xref_stream_object_reused'
+                if str(error) == 'XRef stream objects must not be clobbered in strict mode.'
+                else 'strict_pdf_structure_rejected')
     print(json.dumps(report, indent=2))
     return 0 if report['integrity_check_passed'] else 1
 

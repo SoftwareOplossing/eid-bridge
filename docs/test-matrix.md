@@ -28,10 +28,11 @@ fingerprint is intentionally omitted from this repository.
 | POC-3 signing certificate | PASS, preliminary | Private-path Web eID retrieved a parseable signing certificate used for successful signature verification. The route-only diagnostic reported `belgian-pkcs11` and `certificate_retrieved=true`. Card ownership/subject and chain trust were not independently checked. |
 | POC-4 PIN signature and verification | PASS, happy path | One initial native request failed; three later runs produced independently verified RSA/SHA-256 PKCS#1 v1.5 signatures after local PIN entry. Wrong PIN/cancellation not tested; do not automate PIN attempts. |
 | POC-5 removal/reinsertion | PARTIAL | User reattached USB reader and subsequent signing continued. Removal before/during operation and recovery are untested. |
-| Native KYC contract signing | PASS, user-reported, 2026-10-08 | User reports signing works in the existing browser flow; site completion and final PDF download not yet confirmed |
-| KYC exact PDF/identity/account binding | NOT RUN | Current backend source has open assurance items; offline PDF checker prepared for final-file integrity |
-| Offline PDF checker | PASS locally, 6 cases | Synthetic signed/unsigned PDFs, changed content, altered CMS signature, later incremental update, privacy-safe error output; no external network allowed in test |
-| Edge onboarding certificate check | PASS, user-reported, 2026-10-08 | User confirmed the prescribed retry works after installing the corrected host helper, with the official extension and existing private-DLL PoC. Actual contract signing/backend acceptance remains untested. |
+| Native KYC contract signing | PASS, user-reported, 2026-10-08 | User reports signing works in the browser flow and has a downloaded PDF; backend identity/account outcome unverified |
+| KYC exact PDF/identity/account binding | STRICT PARSING FAILED, user-reported | Downloaded PDF raises `PdfStrictReadError`; signature validity unknown. Synthetic backend reproduction and local save-format fix documented in `kyc-validation-report.md`; fresh contract test after deployment needed |
+| Backend PDF compatibility fix | PASS locally, synthetic evidence | Classic xref save allows independent strict signature/coverage verification. Production Java compilation and isolated regression passed; ordinary tests blocked by unrelated Jackson test compilation error |
+| Offline PDF checker | PASS locally, 8 cases | Synthetic signed/unsigned PDFs, changed content, altered CMS signature, later incremental update, privacy-safe errors and static parser diagnosis; no external network allowed in test |
+| Edge onboarding certificate check | PASS, user-reported, 2026-10-08 | User confirmed the prescribed retry works after installing the corrected host helper, with the official extension and existing private-DLL PoC. Signing subsequently reported working; backend acceptance remains unverified. |
 | Chrome/Firefox browser integration | NOT RUN | Edge result does not establish other-browser support |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module

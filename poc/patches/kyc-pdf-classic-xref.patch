@@ -1,0 +1,104 @@
+--- a/kyc/src/main/java/org/letspeppol/kyc/service/SigningService.java
++++ b/kyc/src/main/java/org/letspeppol/kyc/service/SigningService.java
+@@ -24,6 +24,7 @@
+ import org.apache.pdfbox.pdmodel.PDDocument;
+ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
++import org.apache.pdfbox.pdfwriter.compress.CompressParameters;
+ import org.bouncycastle.asn1.x500.X500Name;
+ import org.bouncycastle.asn1.x500.style.BCStyle;
+ import org.letspeppol.kyc.dto.*;
+@@ -217,7 +218,8 @@
+                 form.flatten(); //final, non-form PDF
+ 
+                 try (var baos = new ByteArrayOutputStream()) {
+-                    doc.save(baos);
++                    // Avoid xref stream object reuse when iText appends the signature revision.
++                    doc.save(baos, CompressParameters.NO_COMPRESSION);
+                     return baos.toByteArray();
+                 }
+             }
+--- /dev/null
++++ b/kyc/src/test/java/org/letspeppol/kyc/service/SigningServicePdfCompatibilityTest.java
+@@ -0,0 +1,81 @@
++package org.letspeppol.kyc.service;
++
++import com.itextpdf.kernel.pdf.*;
++import com.itextpdf.signatures.PdfSigner;
++import com.itextpdf.signatures.SignatureUtil;
++import org.bouncycastle.asn1.x500.X500Name;
++import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
++import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
++import org.bouncycastle.jce.provider.BouncyCastleProvider;
++import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
++import org.junit.jupiter.api.Test;
++import org.letspeppol.kyc.model.kbo.Company;
++import org.letspeppol.kyc.model.kbo.Director;
++import org.letspeppol.kyc.service.signing.*;
++
++import java.io.*;
++import java.math.BigInteger;
++import java.security.*;
++import java.security.cert.X509Certificate;
++import java.time.Instant;
++import java.util.Date;
++import java.util.HexFormat;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++class SigningServicePdfCompatibilityTest {
++    @Test
++    void generatedContractAvoidsXrefStreamReuseAndRetainsValidDeferredSignature() throws Exception {
++        Company company = new Company("0208:0000000000", "0000000000", "BE0000000000", "Synthetic Company");
++        company.setAddress("Synthetic City", "0000", "Synthetic Street");
++        Director director = new Director("Synthetic Director", company);
++        SigningService service = new SigningService(null, null, null, null, null, null, null, null, null);
++        byte[] filled = service.generateFilledContract(director);
++        try (PdfReader reader = new PdfReader(new ByteArrayInputStream(filled));
++             PdfDocument document = new PdfDocument(reader)) {
++            // A classic xref table avoids PDFBox/iText's cross-revision stream-object reuse.
++            assertFalse(reader.hasXrefStm());
++            assertFalse(reader.hasHybridXref());
++            assertFalse(reader.hasRebuiltXref());
++            assertEquals(18, document.getNumberOfPages());
++        }
++
++        Security.addProvider(new BouncyCastleProvider());
++        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
++        generator.initialize(2048);
++        KeyPair key = generator.generateKeyPair();
++        X500Name name = new X500Name("CN=Synthetic KYC signer");
++        Instant now = Instant.now();
++        X509Certificate certificate = new JcaX509CertificateConverter().setProvider("BC").getCertificate(
++            new JcaX509v3CertificateBuilder(name, BigInteger.ONE,
++                Date.from(now.minusSeconds(60)), Date.from(now.plusSeconds(3600)), name, key.getPublic())
++                .build(new JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build(key.getPrivate())));
++
++        PreSignatureContainer preSignature = new PreSignatureContainer();
++        ByteArrayOutputStream prepared = new ByteArrayOutputStream();
++        try (PdfReader reader = new PdfReader(new ByteArrayInputStream(filled))) {
++            PdfSigner signer = new PdfSigner(reader, prepared, new StampingProperties().useAppendMode());
++            signer.setSignerProperties(SigningService.getSignerProperties("Synthetic signature; test data only"));
++            signer.signExternalContainer(preSignature, 16000);
++        }
++        // Produce the same RSA/SHA-256 prehashed signature as Web eID, with a synthetic key.
++        Signature signing = Signature.getInstance("NONEwithRSA");
++        signing.initSign(key.getPrivate());
++        signing.update(HexFormat.of().parseHex("3031300d060960864801650304020105000420"));
++        signing.update(preSignature.getHash());
++        X509Certificate[] chain = {certificate};
++        byte[] cms = EmbeddableSignatureUtil.wrapWebEidSignature(chain, signing.sign(), preSignature.getHash());
++        ByteArrayOutputStream finalized = new ByteArrayOutputStream();
++        try (PdfReader reader = new PdfReader(new ByteArrayInputStream(prepared.toByteArray()))) {
++            PdfSigner.signDeferred(reader, SigningService.SIGNING_FORMFIELD, finalized,
++                new FinalizeSignatureContainer(chain, cms));
++        }
++        try (PdfReader reader = new PdfReader(new ByteArrayInputStream(finalized.toByteArray()));
++             PdfDocument document = new PdfDocument(reader)) {
++            SignatureUtil signatures = new SignatureUtil(document);
++            assertEquals(1, signatures.getSignatureNames().size());
++            assertTrue(signatures.signatureCoversWholeDocument(SigningService.SIGNING_FORMFIELD));
++            assertTrue(signatures.readSignatureData(SigningService.SIGNING_FORMFIELD).verifySignatureIntegrityAndAuthenticity());
++        }
++    }
++}
