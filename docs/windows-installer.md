@@ -1,11 +1,13 @@
 # Windows installer
 
 The current professional candidate is
-`build/installer/LetsPeppol-eID-Bridge-1.0.0-windows-x64-unsigned-candidate.msi`.
+`build/installer/LetsPeppol-eID-Bridge-1.0.1-windows-x64-unsigned-candidate.msi`.
 The product name and customer instructions no longer say "Test". Its stable
 upgrade identity, browser registrations, extension requests, logging and runtime
-are retained. This is an unsigned private release candidate while company signing
-and dependency redistribution preparation are completed. See
+are retained. This is an unsigned private release candidate while exact Belgian source and
+Microsoft runtime redistribution entitlement are established. Qt/Mesa/OpenSSL
+notices and official middleware agreements are included. Signing is optional
+when choosing unsigned distribution. See
 [company signing](company-code-signing.md) and [release status](release-process.md).
 The earlier test packages below are retained as historical evidence.
 
@@ -104,7 +106,7 @@ dotnet tool install wix --version 4.0.6 --tool-path build/tools/wix
 build/tools/wix/wix.exe extension add --global WixToolset.UI.wixext/4.0.6
 build/tools/wix/wix.exe extension add --global WixToolset.Util.wixext/4.0.6
 poc/scripts/build-installer.ps1 -RuntimeDirectory build/installer-help-app-runtime -MiddlewareDll build/clean-pc-test-kit/beidpkcs11.dll -MiddlewareSha256 b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 -Wix build/tools/wix/wix.exe
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-1.0.0-windows-x64-unsigned-candidate.msi
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-1.0.1-windows-x64-unsigned-candidate.msi
 ```
 
 The builder requires NATIVE-BUILD.json for the executable-directory native build,
@@ -129,6 +131,5 @@ translation omissions/order problems prevent a clean whole-project translation
 lint; new setup messages are validated in all four languages.
 
 BUILD-INFO.json, NATIVE-BUILD.json, SHA256SUMS.txt and licence notices are included
-in the package. This is not a public production release: it is unsigned, matching
-Belgian DLL source remains unresolved, and dependency redistribution/notices
-need completion. See [licensing](licensing.md) and [release gates](release-process.md).
+in the package. This is not a public production release: matching Belgian DLL source remains unresolved and the publisher must record
+Microsoft redistribution entitlement. Unsigned distribution is a supported choice. See [licensing](licensing.md) and [release gates](release-process.md).

@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string]$RuntimeDirectory,
     [Parameter(Mandatory)][string]$MiddlewareDll,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$MiddlewareSha256,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '1.0.0',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '1.0.1',
     [string]$Wix = 'wix',
     [string]$OutputDirectory = '',
     [string]$SignTool = '',
@@ -31,6 +31,28 @@ if (-not $Fixture) {
         (Get-FileHash -LiteralPath (Join-Path $runtime 'web-eid.exe') -Algorithm SHA256).Hash -ne $nativeInfo.app_sha256) {
         throw 'The installer needs the verified APP_DIRECTORY native build, not the portable PoC executable.'
     }
+    $qtNotices = Join-Path $root 'third-party/qt/notices'
+    $qtInventory = Get-Content -LiteralPath (Join-Path $qtNotices 'Qt-runtime-inventory.json') -Raw | ConvertFrom-Json
+    if ($nativeInfo.qt_version -ne $qtInventory.qt_version) { throw 'Qt notices do not match the native build version.' }
+    foreach ($entry in @($qtInventory.runtime_files) + @($qtInventory.mesa)) {
+        if ((Get-FileHash -LiteralPath (Join-Path $runtime $entry.file) -Algorithm SHA256).Hash -ne $entry.sha256) {
+            throw "Qt/Mesa notices do not match runtime file: $($entry.file)"
+        }
+    }
+    $qtFiles = @(Get-ChildItem -LiteralPath $runtime -Recurse -File -Filter '*.dll' |
+        Where-Object { $_.Name -like 'Qt6*' -or $_.DirectoryName -ne $runtime } |
+        ForEach-Object { [IO.Path]::GetRelativePath($runtime,$_.FullName).Replace('\','/') })
+    if (Compare-Object $qtFiles @($qtInventory.runtime_files.file)) {
+        throw 'Qt runtime file inventory differs from its collected notices.'
+    }
+    foreach ($entry in @(
+        @{name='Qt-THIRD-PARTY-NOTICES.txt';hash=$qtInventory.notice_sha256},
+        @{name='Mesa-THIRD-PARTY-NOTICES.txt';hash=$qtInventory.mesa.notice_sha256}
+    )) {
+        if ((Get-FileHash -LiteralPath (Join-Path $qtNotices $entry.name) -Algorithm SHA256).Hash -ne $entry.hash) {
+            throw "Qt/Mesa notice integrity check failed: $($entry.name)"
+        }
+    }
 }
 if ((Get-FileHash -LiteralPath $middleware -Algorithm SHA256).Hash -ne $MiddlewareSha256) {
     throw 'Middleware DLL does not match the recorded candidate.'
@@ -55,6 +77,9 @@ function Id([string]$prefix, [string]$value) {
 foreach ($file in Get-ChildItem -LiteralPath $runtime -Recurse -File) {
     if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Runtime payload contains a reparse point.' }
     if ($file.Extension -notin '.dll','.qm' -and $file.Name -notin 'web-eid.exe','qt.conf') { continue }
+    # Windows 11 supplies the Direct3D compiler; Qt resolves it through
+    # QSystemLibrary. Avoid redistributing the older Windows 8.1 SDK copy.
+    if ($file.Name -eq 'd3dcompiler_47.dll') { continue }
     $relative = [IO.Path]::GetRelativePath($runtime, $file.FullName)
     $destination = Join-Path $payload $relative
     New-Item -ItemType Directory -Path (Split-Path $destination) -Force | Out-Null
@@ -81,6 +106,11 @@ Copy-Item -LiteralPath (Join-Path $root 'third-party/lets-peppol/LICENSE') -Dest
 Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/LGPL-3.0-only.txt') -Destination (Join-Path $licenses 'LGPL-3.0.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/GPL-3.0-only.txt') -Destination (Join-Path $licenses 'GPL-3.0.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/README.md') -Destination (Join-Path $licenses 'Qt-source-and-notices.md')
+Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/notices') -Destination (Join-Path $licenses 'Qt') -Recurse
+Copy-Item -LiteralPath (Join-Path $root 'third-party/microsoft') -Destination (Join-Path $licenses 'Microsoft') -Recurse
+Copy-Item -LiteralPath (Join-Path $root 'third-party/openssl/README.md') -Destination (Join-Path $licenses 'OpenSSL-source-and-notices.md')
+Get-ChildItem -LiteralPath (Join-Path $root 'third-party/belgian-eid') -Filter 'Toolkit-agreement-*.rtf' |
+    Copy-Item -Destination $licenses
 if (Test-Path -LiteralPath (Join-Path $runtime 'licenses')) {
     Copy-Item -LiteralPath (Join-Path $runtime 'licenses') -Destination $payload -Recurse -Force
 }
@@ -100,6 +130,8 @@ $metadata = [ordered]@{
     middleware_version = (Get-Item -LiteralPath $middleware).VersionInfo.FileVersion
     middleware_sha256 = $MiddlewareSha256.ToLowerInvariant()
     corresponding_middleware_source_verified = $false
+    qt_runtime_notices_verified = [bool](-not $Fixture)
+    system_d3d_compiler = 'Windows 11 System32; SDK copy not bundled'
     module_resolution = $(if ($Fixture) { 'fixture-not-for-use' } else { 'APP_DIRECTORY' })
     compiler = 'WiX 4.0.6'
 }
@@ -173,9 +205,10 @@ $report = [ordered]@{
     application = $metadata
     installer_signed = [bool]$signing
     public_release = $false
-    remaining_release_requirements = @('Exact corresponding Belgian middleware source and complete dependency notices')
+    remaining_release_requirements = @('Exact corresponding Belgian middleware source, build instructions and incorporated notices',
+        'Publisher confirmation of Visual Studio runtime redistribution entitlement')
 }
-if (-not $signing) { $report.remaining_release_requirements += 'Company signatures for application and MSI' }
+$report.signing_choice = $(if ($signing) { 'Publisher-signed' } else { 'Unsigned; Windows publisher/reputation warnings may apply' })
 WriteUtf8 (Join-Path $OutputDirectory "BUILD-REPORT-$Version-$kind.json") ($report | ConvertTo-Json -Depth 5)
 Write-Output "Built MSI: $msi"
 Get-FileHash -LiteralPath $msi -Algorithm SHA256

@@ -73,3 +73,9 @@ CMakeLists.txt	text
 *.sh		text eol=lf
 commit-msg	text eol=lf
 pre-commit	text eol=lf
+
+# Hashed notice outputs and verbatim official agreements/build records.
+third-party/qt/notices/*.txt text eol=lf
+third-party/qt/notices/*.json text eol=lf
+third-party/qt/notices/build-records/* -text
+third-party/belgian-eid/Toolkit-agreement-*.rtf -text

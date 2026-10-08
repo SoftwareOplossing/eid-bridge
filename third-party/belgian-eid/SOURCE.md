@@ -22,3 +22,12 @@ No DLL is tracked in this repository. This snapshot is not asserted to be corres
 for a selected release binary. Before bundling, record official binary URL/build
 recipe, exact source tag/commit, toolchain, architecture, SHA-256, modifications,
 all notices and the source/replacement mechanism. See `docs/licensing.md`.
+
+## Official agreements
+
+`Toolkit-agreement-en.rtf`, `-nl.rtf`, `-fr.rtf` and `-de.rtf` are copied
+byte-for-byte from `License_en/nl/fr/de.rtf` extracted from the official MSI
+above. They are installed alongside the LGPL text. Agreement section 3.3 requires
+retaining the agreement and its third-party notices on redistribution; retaining
+it does not establish the DLL's corresponding source. The source request in
+`docs/middleware-source-request.md` remains local at the user's instruction.

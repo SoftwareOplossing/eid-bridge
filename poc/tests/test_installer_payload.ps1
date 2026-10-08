@@ -83,6 +83,28 @@ if ($package.application_signed) {
 } elseif ($package.app_sha256 -ne $build.app_sha256) {
     throw 'Unsigned package changed the original native application.'
 }
+if ($package.qt_runtime_notices_verified) {
+    $qt = Get-Content -LiteralPath (Join-Path $output 'licenses/Qt/Qt-runtime-inventory.json') -Raw | ConvertFrom-Json
+    foreach ($entry in @($qt.runtime_files) + @($qt.mesa)) {
+        if ((Get-FileHash -LiteralPath (Join-Path $output $entry.file) -Algorithm SHA256).Hash -ne $entry.sha256) {
+            throw "Packaged Qt/Mesa file differs from its official SDK inventory: $($entry.file)"
+        }
+    }
+    if ((Get-FileHash -LiteralPath (Join-Path $output 'licenses/Qt/Qt-THIRD-PARTY-NOTICES.txt') -Algorithm SHA256).Hash -ne $qt.notice_sha256 -or
+        (Get-FileHash -LiteralPath (Join-Path $output 'licenses/Qt/Mesa-THIRD-PARTY-NOTICES.txt') -Algorithm SHA256).Hash -ne $qt.mesa.notice_sha256) {
+        throw 'Extracted Qt/Mesa notices differ from the audited inventory.'
+    }
+    foreach ($required in 'licenses/Toolkit-agreement-en.rtf','licenses/Toolkit-agreement-nl.rtf',
+        'licenses/Toolkit-agreement-fr.rtf','licenses/Toolkit-agreement-de.rtf',
+        'licenses/Microsoft/vc-runtime-2015-2022-terms.txt','licenses/Microsoft/vs-community-2022-terms.txt',
+        'licenses/OpenSSL-source-and-notices.md','licenses/Qt/build-records/config_qtbase.summary',
+        'licenses/Qt/build-records/config_qtsvg.summary') {
+        if (-not (Test-Path -LiteralPath (Join-Path $output $required))) { throw "Missing packaged notice/build record: $required" }
+    }
+    if (Test-Path -LiteralPath (Join-Path $output 'd3dcompiler_47.dll')) {
+        throw 'Windows 11 installer unnecessarily bundles the legacy SDK Direct3D compiler.'
+    }
+}
 $hostManifest = Get-Content -LiteralPath (Join-Path $output 'eu.webeid.json') -Raw | ConvertFrom-Json
 if ($hostManifest.name -ne 'eu.webeid' -or $hostManifest.path -ne 'web-eid.exe' -or $hostManifest.type -ne 'stdio' -or
     $hostManifest.allowed_origins.Count -ne 2 -or

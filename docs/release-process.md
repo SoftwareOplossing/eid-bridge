@@ -24,8 +24,17 @@ Matching source remains unresolved. A public-history commit with revision count
 5.1.34, so it cannot be assumed to match the selected binary. Preserve the tested
 DLL while obtaining an authoritative matching source revision/build recipe.
 
-The candidate remains private until company signing, corresponding middleware
-source and the complete dependency notice/redistribution inventory are resolved.
+Version 1.0.1 adds verified Qt/Mesa component notices, OpenSSL attribution,
+Microsoft terms and official Belgian Toolkit agreements. It excludes the redundant
+Windows 8.1 Direct3D compiler. WiX validation, MSI table/condition checks, all
+98 extracted payload manifest checks and native browser startup/logging passed.
+All four Toolkit agreements match the official MSI byte-for-byte; the native
+application and middleware hashes remain unchanged. No installation or card/PIN
+test was performed. See [licensing status](licensing.md).
+
+The candidate remains private until corresponding middleware source/notices and
+publisher Microsoft redistribution entitlement are established. Company signing
+is optional when the publisher chooses unsigned distribution.
 The builder records `public_release=false` even when a candidate is signed;
 signing alone does not satisfy redistribution obligations. The website fallback
 changes remain local and are not deployed by building the installer.
@@ -52,7 +61,7 @@ test MSI or use the upstream installer identity for this fork.
 5. Verify the test MSI's protected installation location, ACLs, conflict rejection,
    upgrade/uninstall and rollback on the target PC. The source and MSI table/
    condition checks implement these; they are not a physical installation test.
-6. Produce reviewed notices, SBOM, signed application/installer, authenticated
+6. Produce reviewed notices, SBOM, application/installer (signed if selected), authenticated
    updates, dependency scanning and documented rollback. Re-run hardware/browser
    and clean-machine tests when release changes require them before claiming support.
 
