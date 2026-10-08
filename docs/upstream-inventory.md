@@ -12,9 +12,11 @@ Inspected 2026-09-27. Source findings are not physical-card test results.
 | [eid-mw](https://github.com/Fedict/eid-mw/tree/cf2d593181c56de33198993278d64990292772c1) | `cf2d593181c56de33198993278d64990292772c1` | Middleware source investigation only; not the source identification of a shipped binary |
 | Local Let's Peppol application | `11683ef52bb55fc4b3f6fc7853eca2ccb5a3454d` | Clean checkout at `C:/LetsPeppol/letspeppol`; KYC source inspected read-only |
 
-The current library upstream/fork HEAD is `9fa5a6954bae10d875c30621c69be838f525f493`.
-Its only change after the pinned library base is a CodeQL dependency update; the
-Belgian implementation is identical. Do not advance the submodule silently.
+At initial inspection, upstream/fork HEAD was `9fa5a6954bae10d875c30621c69be838f525f493`.
+Its only change after the pinned library base was a CodeQL dependency update.
+The application now deliberately pins the SoftwareOplossing library patch at
+`2f1cffc9b99919c8172405ca265f28a7cb8caee7` (`codex/private-beid-module`), adding
+the private and executable-directory Belgian module options plus loader tests.
 
 Library source locations, relative to `lib/libelectronic-id`:
 
@@ -39,4 +41,6 @@ OpenSSL >=3.0 and GTest. The library's vcpkg baseline is
 Local results: standalone loader/probe compiled using MinGW GCC 15.2.0 and CMake
 3.31.6. Full native configuration stopped at missing Qt development files. The
 upstream Windows build is MSVC-based; no MinGW port of the full app is proposed.
-Stock-app hardware baseline T1 and existing-KYC baseline T2 remain pending.
+Stock-app hardware baseline T1 and the clean-laptop PoC/browser signing checks
+subsequently passed; see test-matrix.md. Full native app compilation/tests passed
+in Windows CI using MSVC/Qt rather than the local MinGW toolchain.

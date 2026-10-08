@@ -18,7 +18,7 @@ fingerprint is intentionally omitted from this repository.
 | Check | Result | Evidence / next action |
 |---|---|---|
 | Standalone native probe compilation | PASS | `cmake --build build/poc-native` |
-| Native automated suite | PASS, 8 CTest cases | Mock enumeration, required-token failure, missing export, relative path rejection; default/private resolution, sibling dependency success, CWD/PATH dependency exclusion, eleven configuration inputs (valid configurations also compiled) |
+| Native automated suite | PASS, 9 CTest cases | Mock enumeration, required-token failure, missing export, relative path rejection; default/private/executable-directory resolution, sibling dependency success, CWD/PATH dependency exclusion, twelve configuration inputs (valid configurations also compiled) |
 | Independent signature checker | PASS, 11 unittest cases | Synthetic RSA/ECC, altered digest/signature, substituted cert, wrong algorithm, malformed ECC, native errors/timeout and privacy-safe route detection |
 | Browser-host helper | PASS locally, 2026-10-08 | Windows PowerShell actual writes in isolated registry drives: installation/repeat/removal, partial-state recovery, unrelated-host protection and write-failure rollback. First helper's read-only-handle defect fixed. |
 | Native browser startup handshake | PASS locally, 2026-10-08 | Existing portable logging build returned framed version `2.11.0+0` with the Edge extension origin and `--parent-window=0`; no card or PIN required. The subsequent clean-laptop browser check was reported working after host repair. |
@@ -39,6 +39,12 @@ fingerprint is intentionally omitted from this repository.
 | Offline PDF checker | PASS locally, 15 cases | Strict and compressed xref-reuse PDFs; altered content/CMS, unsigned documents and later updates fail. Other strict errors and encrypted fallback input are rejected; private payloads omitted |
 | Edge onboarding certificate check | PASS, user-reported, 2026-10-08 | User confirmed the prescribed retry works after installing the corrected host helper, with the official extension and existing private-DLL PoC. Signing and intended company/director KYC/registration subsequently reported working. |
 | Chrome/Firefox browser integration | NOT RUN | Edge result does not establish other-browser support |
+| Installer native application | PASS, Windows CI run 37826961112 | Branded app with APP_DIRECTORY module resolution, app commit 23545f44ad4bc9d70396f72ddc786488efdf839a and library 2f1cffc9b99919c8172405ca265f28a7cb8caee7; runtime artifact hashes verified locally |
+| Private MSI compilation | PASS locally | WiX 4.0.6 build and MSI validation; separate product/upgrade identity and protected Program Files target |
+| MSI registration/upgrade/removal conditions | PASS locally | Windows PowerShell 5.1 reads actual MSI tables and evaluates clean install, PoC/other-host conflicts, own upgrade, changed host during removal, unknown existing folder and Windows/architecture conditions; no installation performed |
+| MSI packaged payload | PASS locally | All 83 actual CAB files checked against installed hash manifest; native build metadata and browser manifests verified independently through MSI file/directory tables |
+| MSI extracted app startup/logging | PASS locally | Framed version 2.11.0+0 and quit responses; automatic current-user Documents log updated; no card/PIN used |
+| MSI physical install/upgrade/uninstall | NOT RUN | Next installer-specific laptop check; no repeat of completed manual PoC suite requested |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,

@@ -7,7 +7,7 @@ card, and browser -> authoritative KYC backend.
 
 | Threat | Current control / remaining requirement |
 |---|---|
-| Top-level DLL substitution/search | Builder supplies one absolute path; no fallback. Production directory/parent ACLs, reparse points and binary provenance need release validation |
+| Top-level DLL substitution/search | Explicit absolute PoC path or executable-directory installer path; no fallback. MSI fixes a protected Program Files directory and refuses an unknown existing folder. Physical ACL/reparse behavior and binary provenance remain release validation |
 | Dependency hijacking | Private loader excludes CWD/PATH; tested with a dependent mock DLL. Loaded-module reuse and middleware's later dynamic loads require tracing |
 | Missing/corrupt module | Fail with upstream load error; no opportunistic system fallback. Repair/reinstall UX remains future work |
 | PIN/private-key disclosure | Keep upstream native/card behavior; probe never handles PIN; signing checker never accepts PIN as an argument |
@@ -18,5 +18,6 @@ card, and browser -> authoritative KYC backend.
 | Multiple cards/readers | Upstream PKCS#11 enumeration is not tied to original reader; hardware ambiguity test required before support claims |
 | Compromised/downgraded dependency | Pin source/binary hashes, review security changes, sign releases and define rollback/update policy before distribution |
 
-This is a source/test review, not a completed security audit. No installer,
-automatic updates, telemetry or additional identity collection was introduced.
+This is a source/test review, not a completed security audit. An unsigned private
+test MSI is added with its own product identity and conflicting-host protection.
+No automatic updates, telemetry or additional identity collection was introduced.

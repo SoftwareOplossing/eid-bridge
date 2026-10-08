@@ -19,6 +19,13 @@ can supply that part of the plan's acceptance gate. They do not require new nati
 validators. Production installer work remains subject to the implementation
 plan's gates.
 
+An unsigned **private test MSI** is now available locally. It packages the same
+tested Belgian DLL and runtime files, uses an executable-relative module path,
+and registers the existing official browser extension's host. See
+[installer build and migration](../docs/windows-installer.md). The portable
+instructions below describe the earlier PoC; they are not required after MSI
+installation. Public distribution remains gated by source/notices and signing.
+
 The `Portable Windows x64 PoC` workflow builds a zip of the native application,
 Qt/VC++/OpenSSL runtime files and instructions. It does **not** include Belgian
 middleware, register a browser host, or install anything. Its app is compiled to

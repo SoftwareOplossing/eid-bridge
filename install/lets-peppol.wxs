@@ -11,28 +11,31 @@
     <Icon Id="PeppolIcon" SourceFile="$(var.RepoRoot)/install/lets-peppol.ico" />
     <Property Id="ARPPRODUCTICON" Value="PeppolIcon" />
     <Property Id="ARPURLINFOABOUT" Value="https://letspeppol.org" />
-    <Property Id="OSBUILD">
+    <Property Id="OSBUILD" Secure="yes">
       <RegistrySearch Id="WindowsBuild" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                       Name="CurrentBuildNumber" Type="raw" Bitness="always64" />
     </Property>
-    <Property Id="OSARCH">
+    <Property Id="OSARCH" Secure="yes">
       <RegistrySearch Id="WindowsArchitecture" Root="HKLM"
                       Key="SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
                       Name="PROCESSOR_ARCHITECTURE" Type="raw" Bitness="always64" />
     </Property>
     <Launch Condition="Installed OR (VersionNT64 AND OSBUILD &gt;= 22000 AND OSARCH = &quot;AMD64&quot;)"
             Message="This test installer requires Windows 11 on an x64 PC." />
-    <Property Id="OWNINSTALLDIR">
+    <Property Id="OWNINSTALLDIR" Secure="yes">
       <RegistrySearch Id="OwnLocation" Root="HKLM" Key="SOFTWARE\LetsPeppol\eID Bridge"
                       Name="InstallDir" Type="raw" Bitness="always64" />
     </Property>
-    <Property Id="EXISTING_INSTALL_DIR">
+    <Property Id="EXISTING_INSTALL_DIR" Secure="yes">
       <DirectorySearch Id="ExistingFolder" Path="[ProgramFiles64Folder]LetsPeppol eID Bridge" Depth="0" />
     </Property>
     <Launch Condition="NOT EXISTING_INSTALL_DIR OR OWNINSTALLDIR"
             Message="The installation folder already exists and is not owned by this installer. Please choose a clean test PC or remove that folder before installing." />
     <SetProperty Id="EXPECTEDHOST" Value="[OWNINSTALLDIR]eu.webeid.json" After="AppSearch" Sequence="both" />
     <SetProperty Id="EXPECTEDFIREFOXHOST" Value="[OWNINSTALLDIR]eu.webeid.firefox.json" After="SetEXPECTEDHOST" Sequence="both" />
+    <Property Id="EXPECTEDHOST" Secure="yes" />
+    <Property Id="EXPECTEDFIREFOXHOST" Secure="yes" />
+    <SetProperty Id="INSTALLFOLDER" Value="[ProgramFiles64Folder]LetsPeppol eID Bridge" Before="CostFinalize" Sequence="both" />
     <ui:WixUI Id="WixUI_Minimal" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.RepoRoot)/install/lets-peppol-test-license.rtf" />
 
@@ -52,7 +55,7 @@
         <Component Id="Shortcuts" Guid="99db3a82-a5ed-4520-a25f-0f5c86086442" Bitness="always64">
           <Shortcut Id="Onboarding" Name="Let's Peppol onboarding" Target="[INSTALLFOLDER]Onboarding.url" />
           <Shortcut Id="Instructions" Name="Installation and support" Target="[INSTALLFOLDER]README.txt" />
-          <Shortcut Id="LogFolder" Name="Open logs" Target="[PersonalFolder]LetsPeppol eID Bridge\Logs" />
+          <Shortcut Id="LogFolder" Name="Open Documents for logs" Target="[WindowsFolder]explorer.exe" Arguments="shell:Personal" />
           <RemoveFolder Id="RemoveBridgeMenu" On="uninstall" />
           <RegistryValue Root="HKLM" Key="SOFTWARE\LetsPeppol\eID Bridge" Name="Shortcuts"
                          Type="integer" Value="1" KeyPath="yes" />

@@ -62,6 +62,9 @@ Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $lice
 Copy-Item -LiteralPath (Join-Path $root 'lib/libelectronic-id/LICENSE') -Destination (Join-Path $licenses 'libelectronic-id-MIT.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/belgian-eid/LICENSE') -Destination (Join-Path $licenses 'Belgian-eID-LGPL.txt')
 Copy-Item -LiteralPath (Join-Path $root 'third-party/lets-peppol/LICENSE') -Destination (Join-Path $licenses 'LetsPeppol-MIT.txt')
+Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/LGPL-3.0-only.txt') -Destination (Join-Path $licenses 'LGPL-3.0.txt')
+Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/GPL-3.0-only.txt') -Destination (Join-Path $licenses 'GPL-3.0.txt')
+Copy-Item -LiteralPath (Join-Path $root 'third-party/qt/README.md') -Destination (Join-Path $licenses 'Qt-source-and-notices.md')
 if (Test-Path -LiteralPath (Join-Path $runtime 'licenses')) {
     Copy-Item -LiteralPath (Join-Path $runtime 'licenses') -Destination $payload -Recurse -Force
 }
@@ -117,7 +120,7 @@ foreach ($browser in 'Edge','Chrome','Firefox') {
         foreach ($hive in 'HKCU','HKLM') {
             $property = "HOST_${browser}_${view}_${hive}".ToUpperInvariant()
             $key = "SOFTWARE\$registry\NativeMessagingHosts\eu.webeid"
-            $searches.Add(('<Property Id="{0}"><RegistrySearch Id="Search_{0}" Root="{1}" Key="{2}" Type="raw" Bitness="always{3}" /></Property>' -f $property,$hive,$key,$view))
+            $searches.Add(('<Property Id="{0}" Secure="yes"><RegistrySearch Id="Search_{0}" Root="{1}" Key="{2}" Type="raw" Bitness="always{3}" /></Property>' -f $property,$hive,$key,$view))
             $conditions.Add("(NOT $property OR (OWNINSTALLDIR AND $property = $expected))")
             if ($hive -eq 'HKLM') {
                 $hosts.Add(('<Component Id="NativeHost_{0}_{1}" Directory="INSTALLFOLDER" Guid="*" Bitness="always{1}"><RegistryValue Root="HKLM" Key="{2}" Type="string" Value="[INSTALLFOLDER]{3}" KeyPath="yes" /></Component>' -f $browser,$view,$key,$manifest))

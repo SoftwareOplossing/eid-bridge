@@ -18,7 +18,10 @@ Firefox: https://addons.mozilla.org/firefox/addon/web-eid-webextension/
 Only Edge has been exercised with the current Let's Peppol PoC.
 
 Restart the browser and open https://be.letspeppol.org/onboarding . The Start menu
-contains an onboarding link, these instructions and an Open logs shortcut.
+contains an onboarding link, these instructions and an Open Documents for logs
+shortcut. From Documents, open LetsPeppol eID Bridge\Logs. The shortcut resolves
+the current user's Documents folder even if a different administrator installed
+the application.
 Logging is always enabled at:
 Documents\LetsPeppol eID Bridge\Logs\LetsPeppol-eID-Bridge.log
 Review logs before sharing; do not share your PIN or identity/certificate data.
