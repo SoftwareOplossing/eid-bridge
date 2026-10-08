@@ -18,7 +18,7 @@ fingerprint is intentionally omitted from this repository.
 | Native automated suite | PASS, 8 CTest cases | Mock enumeration, required-token failure, missing export, relative path rejection; default/private resolution, sibling dependency success, CWD/PATH dependency exclusion, eleven configuration inputs (valid configurations also compiled) |
 | Independent signature checker | PASS, 11 unittest cases | Synthetic RSA/ECC, altered digest/signature, substituted cert, wrong algorithm, malformed ECC, native errors/timeout and privacy-safe route detection |
 | Browser-host helper | PASS locally, 2026-10-08 | Windows PowerShell actual writes in isolated registry drives: installation/repeat/removal, partial-state recovery, unrelated-host protection and write-failure rollback. First helper's read-only-handle defect fixed. |
-| Native browser startup handshake | PASS locally, 2026-10-08 | Existing portable logging build returned framed version `2.11.0+0` with the Edge extension origin and `--parent-window=0`; no card or PIN required. Clean-laptop Edge test remains pending. |
+| Native browser startup handshake | PASS locally, 2026-10-08 | Existing portable logging build returned framed version `2.11.0+0` with the Edge extension origin and `--parent-window=0`; no card or PIN required. The subsequent clean-laptop browser check was reported working after host repair. |
 | Installed system middleware load/init | PASS, baseline only | Signed version 5.1.34.6213; PKCS#11 init/enumeration returned CKR_OK with one token after card insertion |
 | Full native build | PASS in Windows CI | Portable Windows x64 PoC workflow built and ran tests; archive included MSVC runtime and was hash-verified after extraction |
 | T1 stock app + system middleware + card | PASS, preliminary | Installed Web eID 2.8.0 retrieved the signing certificate and signed the fixed SHA-256 digest; independent RSA PKCS#1 v1.5 verification passed after private PIN entry. Repeat on the plan's pinned version before final gate. |
@@ -29,7 +29,8 @@ fingerprint is intentionally omitted from this repository.
 | POC-4 PIN signature and verification | PASS, happy path | One initial native request failed; three later runs produced independently verified RSA/SHA-256 PKCS#1 v1.5 signatures after local PIN entry. Wrong PIN/cancellation not tested; do not automate PIN attempts. |
 | POC-5 removal/reinsertion | PARTIAL | User reattached USB reader and subsequent signing continued. Removal before/during operation and recovery are untested. |
 | KYC exact PDF/identity/account binding | NOT RUN | Current backend source has open assurance items |
-| Chrome/Edge/Firefox | NOT RUN | Edge native-host certificate check on current onboarding is next; browser KYC remains later |
+| Edge onboarding certificate check | PASS, user-reported, 2026-10-08 | User confirmed the prescribed retry works after installing the corrected host helper, with the official extension and existing private-DLL PoC. Actual contract signing/backend acceptance remains untested. |
+| Chrome/Firefox browser integration | NOT RUN | Edge result does not establish other-browser support |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,
