@@ -50,6 +50,12 @@ including an existing PoC registration; another user's HKCU is not inspected.
 Two native applications owning the same host are not supported. No extension
 fork is justified yet. No website-only origin restriction is implemented.
 
+MSI 0.1.1 reuses upstream's Edge/Chrome external extension store requests. Browser
+confirmation is retained, and Firefox still uses a manual store install. Requests
+that predate this MSI are not claimed or removed. No forced browser policy is
+introduced, and no third-party extension is blocked. Native and Windows help
+links point to Let's Peppol onboarding.
+
 The installer authoring is separate from upstream `install/web-eid.wxs`, with
 its own product/upgrade identity. MSI manages files, registrations, shortcuts,
 upgrade rollback and uninstall; no registration PowerShell custom action is used.

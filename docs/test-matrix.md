@@ -44,7 +44,9 @@ fingerprint is intentionally omitted from this repository.
 | MSI registration/upgrade/removal conditions | PASS locally | Windows PowerShell 5.1 reads actual MSI tables and evaluates clean install, PoC/other-host conflicts, own upgrade, changed host during removal, unknown existing folder and Windows/architecture conditions; no installation performed |
 | MSI packaged payload | PASS locally | All 83 actual CAB files checked against installed hash manifest; native build metadata and browser manifests verified independently through MSI file/directory tables |
 | MSI extracted app startup/logging | PASS locally | Framed version 2.11.0+0 and quit responses; automatic current-user Documents log updated; no card/PIN used |
-| MSI physical install/upgrade/uninstall | NOT RUN | Next installer-specific laptop check; no repeat of completed manual PoC suite requested |
+| MSI 0.1.0 physical install/uninstall | PASS, user-reported | User confirmed installation/uninstallation works; no detailed Windows Installer log was collected. Upgrade not yet tested |
+| MSI 0.1.1 extension request authoring | PASS locally | Actual MSI registry tables and conditions: official Edge/Chrome store URLs, 32-bit view, own request creation/upgrade, pre-existing request preservation and different-source rejection; no force-install policy added |
+| MSI 0.1.1 automatic browser extension install/upgrade | NOT RUN | Browser confirmation and new request behavior need a target-machine check; existing signing/cancellation/card-removal results remain accepted |
 
 The initial clean-Windows private-DLL signing milestone is **met**: the module
 loaded, a token was enumerated, Web eID selected the Belgian PKCS#11 route,

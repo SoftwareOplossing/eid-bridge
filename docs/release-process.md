@@ -3,7 +3,8 @@
 An unsigned private Windows 11 x64 test MSI is built. The portable package passed
 the user's clean-Windows signing/browser/PDF path, and cancellation/card removal
 were reported tested. No additional manual PoC test is requested now. Installing,
-upgrading and uninstalling the new MSI still need physical-machine confirmation.
+upgrading and new extension-request behavior still need physical-machine confirmation.
+The user reports installation and uninstallation of 0.1.0 worked on the laptop.
 See [installer build and migration](windows-installer.md). Do not publish the
 test MSI or use the upstream installer identity for this fork.
 

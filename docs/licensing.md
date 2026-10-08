@@ -38,6 +38,9 @@ to avoid accidentally changing the tested candidate.
 The Web eID application and `libelectronic-id` source are MIT-licensed. Covered
 code, UI text and artwork may be modified and redistributed while preserving
 copyright and license notices; inspect any asset-specific notices as well. The
+MIT licence does not require the original help link. It may be replaced with our
+onboarding URL or support email, or removed; the preserved notices and upstream
+attribution in About satisfy a different purpose from a customer support link. The
 Belgian middleware's LGPL obligations
 remain separate. Open-source copyright permission does not grant a right to
 present our fork as an official Web eID or Belgian government product; replace

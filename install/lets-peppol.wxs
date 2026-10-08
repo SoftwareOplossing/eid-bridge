@@ -10,7 +10,30 @@
                   DowngradeErrorMessage="A newer Let's Peppol eID Bridge is already installed." />
     <Icon Id="PeppolIcon" SourceFile="$(var.RepoRoot)/install/lets-peppol.ico" />
     <Property Id="ARPPRODUCTICON" Value="PeppolIcon" />
-    <Property Id="ARPURLINFOABOUT" Value="https://letspeppol.org" />
+    <Property Id="ARPURLINFOABOUT" Value="https://be.letspeppol.org/onboarding" />
+    <Property Id="ARPHELPLINK" Value="https://be.letspeppol.org/onboarding" />
+    <!-- Match upstream's store installation requests, without force-install policies.
+         Preserve an already existing request rather than claiming it on uninstall. -->
+    <Property Id="EDGE_EXTENSION_UPDATE" Secure="yes">
+      <RegistrySearch Id="EdgeExtensionUpdate" Root="HKLM" Bitness="always32" Type="raw"
+                      Key="SOFTWARE\Microsoft\Edge\Extensions\gnmckgbandlkacikdndelhfghdejfido" Name="update_url" />
+    </Property>
+    <Property Id="CHROME_EXTENSION_UPDATE" Secure="yes">
+      <RegistrySearch Id="ChromeExtensionUpdate" Root="HKLM" Bitness="always32" Type="raw"
+                      Key="SOFTWARE\Google\Chrome\Extensions\ncibgoaomkmdpilpocfeponihegamlic" Name="update_url" />
+    </Property>
+    <Property Id="OWN_EDGE_EXTENSION_REQUEST" Secure="yes">
+      <RegistrySearch Id="OwnEdgeExtension" Root="HKLM" Bitness="always32" Type="raw"
+                      Key="SOFTWARE\LetsPeppol\eID Bridge\ExtensionRequests" Name="Edge" />
+    </Property>
+    <Property Id="OWN_CHROME_EXTENSION_REQUEST" Secure="yes">
+      <RegistrySearch Id="OwnChromeExtension" Root="HKLM" Bitness="always32" Type="raw"
+                      Key="SOFTWARE\LetsPeppol\eID Bridge\ExtensionRequests" Name="Chrome" />
+    </Property>
+    <Launch Condition="NOT EDGE_EXTENSION_UPDATE OR EDGE_EXTENSION_UPDATE = &quot;https://edge.microsoft.com/extensionwebstorebase/v1/crx&quot;"
+            Message="The Web eID Edge extension has a different installation source. No extension setting was replaced. Contact support via be.letspeppol.org/onboarding." />
+    <Launch Condition="NOT CHROME_EXTENSION_UPDATE OR CHROME_EXTENSION_UPDATE = &quot;https://clients2.google.com/service/update2/crx&quot;"
+            Message="The Web eID Chrome extension has a different installation source. No extension setting was replaced. Contact support via be.letspeppol.org/onboarding." />
     <Property Id="OSBUILD" Secure="yes">
       <RegistrySearch Id="WindowsBuild" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                       Name="CurrentBuildNumber" Type="raw" Bitness="always64" />
@@ -48,6 +71,20 @@
           <RegistryValue Root="HKLM" Key="SOFTWARE\LetsPeppol\eID Bridge" Name="InstallDir"
                          Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
         </Component>
+        <Component Id="EdgeExtensionRequest" Guid="4a6986af-d853-452d-b9a7-84ac811cced7" Bitness="always32"
+                   Condition="NOT EDGE_EXTENSION_UPDATE OR (OWNINSTALLDIR AND OWN_EDGE_EXTENSION_REQUEST)">
+          <RegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Edge\Extensions\gnmckgbandlkacikdndelhfghdejfido"
+                         Name="update_url" Type="string" Value="https://edge.microsoft.com/extensionwebstorebase/v1/crx" KeyPath="yes" />
+          <RegistryValue Root="HKLM" Key="SOFTWARE\LetsPeppol\eID Bridge\ExtensionRequests"
+                         Name="Edge" Type="string" Value="1" />
+        </Component>
+        <Component Id="ChromeExtensionRequest" Guid="aad866fe-d4c3-45a1-9183-90e09a847ce9" Bitness="always32"
+                   Condition="NOT CHROME_EXTENSION_UPDATE OR (OWNINSTALLDIR AND OWN_CHROME_EXTENSION_REQUEST)">
+          <RegistryValue Root="HKLM" Key="SOFTWARE\Google\Chrome\Extensions\ncibgoaomkmdpilpocfeponihegamlic"
+                         Name="update_url" Type="string" Value="https://clients2.google.com/service/update2/crx" KeyPath="yes" />
+          <RegistryValue Root="HKLM" Key="SOFTWARE\LetsPeppol\eID Bridge\ExtensionRequests"
+                         Name="Chrome" Type="string" Value="1" />
+        </Component>
       </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder">
@@ -64,6 +101,8 @@
     </StandardDirectory>
     <Feature Id="Bridge" Title="Let's Peppol eID Bridge" Level="1">
       <ComponentRef Id="InstallDirectory" />
+      <ComponentRef Id="EdgeExtensionRequest" />
+      <ComponentRef Id="ChromeExtensionRequest" />
       <ComponentRef Id="Shortcuts" />
       <ComponentGroupRef Id="PayloadFiles" />
       <ComponentGroupRef Id="NativeHosts" />
