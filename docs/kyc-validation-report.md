@@ -4,8 +4,9 @@ Status on 2026-10-08: Edge onboarding certificate check reported working on
 the clean Windows laptop after native-host registration repair. The user also
 reports that contract signing works and supplied a downloaded PDF check that
 failed strict parsing (`PdfStrictReadError`). A PDFBox/iText interoperability
-issue was reproduced with synthetic data and fixed locally in the KYC service;
-the user's exact PDF and the full assurance gate remain unverified.
+restriction was reproduced with synthetic data and handled in the offline
+checker. The earlier local KYC workaround was removed; the user's exact PDF
+and the full assurance gate remain unverified.
 
 ## Next controlled transaction
 
@@ -40,7 +41,7 @@ status and reproducible test descriptions here. Never collect or share the PIN.
 | Edge onboarding installation check | Certificate and SHA-256 support retrieved | PASS, user-reported | Confirmed working after helper repair on 2026-10-08 |
 | Native KYC contract signing | Signature returned through the existing browser flow | PASS, user-reported | User reported signing works on 2026-10-08; no identifying data collected |
 | Completed KYC transaction | Correct backend identity/account outcome and final PDF | PENDING CONFIRMATION | Site completion and PDF download outcome requested |
-| Exact final PDF | Intended content unchanged; cryptographic signature valid | BLOCKED BY STRICT PARSING, user-reported | User's downloaded file raises `PdfStrictReadError`; this does not establish an invalid signature. Recheck a newly signed contract after the local backend fix is deployed. Intended document/account still requires backend evidence |
+| Exact final PDF | Intended content unchanged; cryptographic signature valid | AWAITING UPDATED CHECKER RESULT | Original strict checker raised `PdfStrictReadError`; recheck the same downloaded file with the compatibility checker. Intended document/account still requires backend evidence |
 | Trusted signing certificate | Chain, validity and required policy pass | NOT RUN | Confirm deployed truststore and revocation policy |
 | Altered PDF/digest/signature | Rejected; no registration granted | NOT RUN | Controlled backend test |
 | Substituted certificate | Rejected | NOT RUN | Controlled backend test |
@@ -55,7 +56,7 @@ the production configuration uses the source defaults. Gate B remains open;
 production installer work follows successful validation. Formal Gate A also
 still requires clean-laptop module/dependency evidence and negative testing.
 
-## PDF interoperability reproduction and local fix
+## PDF interoperability reproduction and checker compatibility
 
 The KYC backend fills/flattens its template with PDFBox 3.0.2, saves it with
 default compression, then uses iText 9.3.0 append mode to prepare and finalize
@@ -67,28 +68,28 @@ revisions failed. Compatibility parsing of the synthetic final file verified
 the signature and entire-file coverage. No private user contract was inspected;
 the same exception class alone does not confirm their exact parser failure.
 
-The minimal backend change saves the initial contract with
-`CompressParameters.NO_COMPRESSION`, giving iText a classic cross-reference
-table to append to. The resulting synthetic signed file passed the independent
-strict checker, including signed-byte integrity, cryptographic validity and
-whole-file coverage. Neither the native bridge nor the extension needed changes.
-The reviewable change and Java regression test are retained in
-[kyc-pdf-classic-xref.patch](../poc/patches/kyc-pdf-classic-xref.patch) and applied
-locally to `C:/LetsPeppol/letspeppol/kyc`; nothing was deployed.
+The installed pyHanko 0.37.0 source explicitly documents that its xref stream
+reuse restriction is stricter than the PDF specification. Its motivation is
+encryption/cache semantics. This is a reader compatibility restriction, not
+evidence that all existing signed contracts are malformed or have bad signatures.
+An initial local workaround used a classic xref save in KYC; that source change
+and its added Java test have now been removed. No website changes were deployed
+or remain necessary for this checker compatibility issue.
 
-The Java regression calls the actual `generateFilledContract`, checks the xref
-format, prepares the normal signature appearance, and completes a synthetic
-Web eID-style RSA signature through the backend CMS containers. iText confirms
-one cryptographically valid signature covering the whole document. Production
-compilation and the isolated regression passed. The ordinary Gradle test command
-was blocked by a pre-existing `AccountUserDetailsTest.java:50` Jackson module
-type mismatch, so a local init script restricted test compilation to this new
-regression; the full Java test suite has not passed.
+The offline checker tries strict parsing first. Only the exact known xref reuse
+error triggers a rewind of the same file and a compatibility parse. Encrypted
+files are rejected by this fallback. Other strict errors remain failures. It
+validates the original bytes without rewriting the PDF and still requires one
+signature, intact signed bytes, a cryptographically valid CMS signature and
+whole-file coverage. Its JSON reports `pdf_parse_mode=xref_compatibility` and
+`parser_issue=xref_stream_object_reused` when the fallback was used; normal
+strictly parsed files report `pdf_parse_mode=strict`. Trust, revocation and
+expected document/account remain explicitly unverified.
 
-The offline checker's strict parsing is retained. It now reports the static
-`parser_issue=xref_stream_object_reused` for the known error, or
-`strict_pdf_structure_rejected` for other strict errors, without printing private
-exception payloads. All 19 Python signature/diagnostic tests passed. Rechecking
-the original PDF with this diagnostic can confirm whether its failure matches.
-Do not rewrite an already signed PDF to change its encoding: rebuild/redeploy
-the KYC service and sign a newly generated contract before checking again.
+All 26 Python tests passed, including compact synthetic compressed xref-reuse
+PDFs: valid signatures pass; unsigned documents, changed signed content, altered
+CMS signatures and later incremental updates fail. Other strict errors do not
+trigger fallback, and encrypted compatibility input is rejected. The original
+synthetic PDFBox/iText contract also passes the updated checker. The user can
+recheck their existing downloaded PDF with the updated executable; no website
+deployment or fresh signature is required for this integrity check.

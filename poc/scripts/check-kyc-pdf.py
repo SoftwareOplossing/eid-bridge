@@ -18,24 +18,31 @@ from pyhanko.sign.validation.status import SignatureCoverageLevel
 from pyhanko_certvalidator import ValidationContext
 
 
-def check_pdf(path):
+XREF_REUSE_ERROR = 'XRef stream objects must not be clobbered in strict mode.'
+
+
+def _check_document(document, strict):
+    reader = PdfFileReader(document, strict=strict)
+    # The library's xref reuse restriction protects encryption/cache semantics.
+    # The known unencrypted KYC case can use its compatibility reader.
+    if not strict and reader.encrypted:
+        raise ValueError('Encrypted PDFs are unsupported in xref compatibility mode.')
     results = []
-    with Path(path).open('rb') as document:
-        reader = PdfFileReader(document, strict=True)
-        for signature in reader.embedded_regular_signatures:
-            # No OS trust fallback, network fetching, or trusted-time assertion.
-            # Only the integrity/coverage fields are used from this result.
-            context = ValidationContext(
-                trust_roots=[], allow_fetching=False, revocation_mode='soft-fail')
-            status = validate_pdf_signature(
-                signature, signer_validation_context=context,
-                ts_validation_context=context, skip_diff=True)
-            results.append({
-                'signed_bytes_intact': bool(status.intact),
-                'signature_cryptographically_valid': bool(status.valid),
-                'whole_file_covered': status.coverage == SignatureCoverageLevel.ENTIRE_FILE,
-            })
+    for signature in reader.embedded_regular_signatures:
+        # No OS trust fallback, network fetching, or trusted-time assertion.
+        # Only the integrity/coverage fields are used from this result.
+        context = ValidationContext(
+            trust_roots=[], allow_fetching=False, revocation_mode='soft-fail')
+        status = validate_pdf_signature(
+            signature, signer_validation_context=context,
+            ts_validation_context=context, skip_diff=True)
+        results.append({
+            'signed_bytes_intact': bool(status.intact),
+            'signature_cryptographically_valid': bool(status.valid),
+            'whole_file_covered': status.coverage == SignatureCoverageLevel.ENTIRE_FILE,
+        })
     return {
+        'pdf_parse_mode': 'strict' if strict else 'xref_compatibility',
         'signature_count': len(results),
         'signatures': results,
         # This narrowly expects one complete KYC signature, with no later updates.
@@ -45,6 +52,20 @@ def check_pdf(path):
         'revocation_checked': False,
         'expected_document_and_account_verified': False,
     }
+
+
+def check_pdf(path):
+    with Path(path).open('rb') as document:
+        try:
+            return _check_document(document, strict=True)
+        except PdfStrictReadError as error:
+            if str(error) != XREF_REUSE_ERROR:
+                raise
+            # Re-read the original bytes; never repair or rewrite a signed PDF.
+            document.seek(0)
+            report = _check_document(document, strict=False)
+            report['parser_issue'] = 'xref_stream_object_reused'
+            return report
 
 
 def main(argv=None):
@@ -61,7 +82,7 @@ def main(argv=None):
             # Classify known parser failures without disclosing their payload.
             report['parser_issue'] = (
                 'xref_stream_object_reused'
-                if str(error) == 'XRef stream objects must not be clobbered in strict mode.'
+                if str(error) == XREF_REUSE_ERROR
                 else 'strict_pdf_structure_rejected')
     print(json.dumps(report, indent=2))
     return 0 if report['integrity_check_passed'] else 1

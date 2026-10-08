@@ -169,17 +169,21 @@ test laptop and run the separate offline checker:
 .\check-kyc-pdf.exe 'C:\path\to\signed-contract.pdf'
 ```
 
-Its successful JSON contains only booleans and a signature count. It reports whether the
+Its JSON contains booleans, a signature count and static parsing status. It reports whether the
 signed bytes are intact, the CMS signature verifies, and the entire file is
 covered. `integrity_check_passed=true` requires exactly one regular signature
 and all three checks. Later legitimate signatures/timestamps/updates may need
 review; a coverage failure alone does not prove malicious tampering.
 No certificate identity, PDF content, filename or fingerprint is printed.
-Strict parsing errors include a static `parser_issue` code. The known
-`xref_stream_object_reused` failure was reproduced in the KYC backend's
-PDFBox/iText combination; see [the local fix and evidence](../docs/kyc-validation-report.md#pdf-interoperability-reproduction-and-local-fix).
-Other strict failures report `strict_pdf_structure_rejected`. Parsing stays
-strict; an error does not establish whether the cryptographic signature is valid.
+The checker tries strict parsing first. For the specific xref stream reuse
+restriction reproduced in compressed PDFBox/iText contracts, it retries with
+the compatibility reader on the same bytes. Its output then includes
+`pdf_parse_mode=xref_compatibility` and `parser_issue=xref_stream_object_reused`;
+otherwise `pdf_parse_mode=strict` is reported. All signature and coverage checks
+still apply. Encrypted PDFs are unsupported by the fallback, and other strict
+errors remain failures (`strict_pdf_structure_rejected`). See
+[the reproduction and compatibility evidence](../docs/kyc-validation-report.md#pdf-interoperability-reproduction-and-checker-compatibility).
+Existing contracts can be checked without changing or re-signing them.
 The source version runs as `python poc/scripts/check-kyc-pdf.py <pdf>` using
 `poc/pdf-requirements.txt`. No HTTP/certificate-fetching requests are enabled.
 

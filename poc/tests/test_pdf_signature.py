@@ -56,6 +56,21 @@ class PdfCheckTests(unittest.TestCase):
         signers.sign_pdf(IncrementalPdfFileWriter(BytesIO(cls.unsigned)),
                          signers.PdfSignatureMetadata(field_name='KYC'), signer=signer, output=signed)
         cls.signed = signed.getvalue()
+        # Reuse an existing compressed xref stream in the signing revision.
+        # This recreates the parser restriction hit by PDFBox/iText contracts.
+        writer = IncrementalPdfFileWriter(BytesIO(cls.unsigned))
+        xref = next(iter(writer.prev.xrefs.xref_stream_refs))
+        writer.mark_update(xref)
+        compatible_signed = BytesIO()
+        signers.sign_pdf(writer, signers.PdfSignatureMetadata(field_name='KYC'),
+                         signer=signer, output=compatible_signed)
+        cls.compatible_signed = compatible_signed.getvalue()
+
+        writer = IncrementalPdfFileWriter(BytesIO(cls.unsigned))
+        writer.mark_update(next(iter(writer.prev.xrefs.xref_stream_refs)))
+        compatible_unsigned = BytesIO()
+        writer.write(compatible_unsigned)
+        cls.compatible_unsigned = compatible_unsigned.getvalue()
 
     def check_bytes(self, data):
         with tempfile.TemporaryDirectory() as folder:
@@ -77,6 +92,82 @@ class PdfCheckTests(unittest.TestCase):
         self.assertFalse(result['certificate_trust_verified'])
         self.assertFalse(result['revocation_checked'])
         self.assertFalse(result['expected_document_and_account_verified'])
+        self.assertEqual(result['pdf_parse_mode'], 'strict')
+
+    def test_reused_compressed_xref_passes_with_original_bytes_unchanged(self):
+        with self.assertRaisesRegex(PdfStrictReadError, 'must not be clobbered'):
+            PdfFileReader(BytesIO(self.compatible_signed), strict=True)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'synthetic.pdf'
+            path.write_bytes(self.compatible_signed)
+            result = check.check_pdf(path)
+            self.assertEqual(path.read_bytes(), self.compatible_signed)
+        self.assertTrue(result['integrity_check_passed'])
+        self.assertTrue(all(result['signatures'][0].values()))
+        self.assertEqual(result['pdf_parse_mode'], 'xref_compatibility')
+        self.assertEqual(result['parser_issue'], 'xref_stream_object_reused')
+        self.assertFalse(result['certificate_trust_verified'])
+        self.assertFalse(result['revocation_checked'])
+        self.assertFalse(result['expected_document_and_account_verified'])
+
+    def test_reused_xref_without_signature_fails(self):
+        result = self.check_bytes(self.compatible_unsigned)
+        self.assertFalse(result['integrity_check_passed'])
+        self.assertEqual(result['pdf_parse_mode'], 'xref_compatibility')
+        self.assertEqual(result['signature_count'], 0)
+
+    def test_changed_signed_bytes_with_reused_xref_fail(self):
+        changed = self.compatible_signed.replace(b'/MediaBox [ 0 0 300 300 ]',
+                                                b'/MediaBox [ 0 0 301 300 ]', 1)
+        self.assertNotEqual(changed, self.compatible_signed)
+        result = self.check_bytes(changed)
+        self.assertEqual(result['pdf_parse_mode'], 'xref_compatibility')
+        self.assertFalse(result['signatures'][0]['signed_bytes_intact'])
+        self.assertFalse(result['integrity_check_passed'])
+
+    def test_changed_cms_with_reused_xref_fails(self):
+        signature = PdfFileReader(BytesIO(self.compatible_signed), strict=False).embedded_regular_signatures[0]
+        encoded = signature.signer_info['signature'].native.hex().encode('ascii')
+        if encoded not in self.compatible_signed:
+            encoded = encoded.upper()
+        position = self.compatible_signed.index(encoded)
+        replacement = b'0' if self.compatible_signed[position:position + 1] != b'0' else b'1'
+        changed = self.compatible_signed[:position] + replacement + self.compatible_signed[position + 1:]
+        result = self.check_bytes(changed)
+        self.assertEqual(result['pdf_parse_mode'], 'xref_compatibility')
+        self.assertTrue(result['signatures'][0]['signed_bytes_intact'])
+        self.assertFalse(result['signatures'][0]['signature_cryptographically_valid'])
+        self.assertFalse(result['integrity_check_passed'])
+
+    def test_later_update_with_reused_xref_fails_coverage(self):
+        writer = IncrementalPdfFileWriter(BytesIO(self.compatible_signed), strict=False)
+        writer.root['/TestChange'] = generic.TextStringObject('Changed after signing')
+        writer.update_root()
+        changed = BytesIO()
+        writer.write(changed)
+        result = self.check_bytes(changed.getvalue())
+        self.assertEqual(result['pdf_parse_mode'], 'xref_compatibility')
+        self.assertTrue(result['signatures'][0]['signature_cryptographically_valid'])
+        self.assertFalse(result['signatures'][0]['whole_file_covered'])
+        self.assertFalse(result['integrity_check_passed'])
+
+    def test_other_strict_error_does_not_trigger_fallback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'synthetic.pdf'
+            path.write_bytes(self.signed)
+            with patch.object(check, 'PdfFileReader', side_effect=PdfStrictReadError('Other structure failure')) as reader:
+                with self.assertRaises(PdfStrictReadError):
+                    check.check_pdf(path)
+                self.assertEqual(reader.call_count, 1)
+
+    def test_compatibility_does_not_accept_encrypted_input(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'synthetic.pdf'
+            path.write_bytes(self.signed)
+            with patch.object(check, 'PdfFileReader', side_effect=[
+                    PdfStrictReadError(check.XREF_REUSE_ERROR), type('EncryptedReader', (), {'encrypted': True})()]):
+                with self.assertRaises(ValueError):
+                    check.check_pdf(path)
 
     def test_unsigned_pdf_fails(self):
         result = self.check_bytes(self.unsigned)
