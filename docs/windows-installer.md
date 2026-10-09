@@ -1,14 +1,15 @@
 # Windows installer
 
-The current professional candidate is
-`build/installer/LetsPeppol-eID-Bridge-1.1.0-windows-x64-unsigned-candidate.msi`.
+The public installer is
+`build/installer/LetsPeppol-eID-Bridge-1.1.0-windows-x64-unsigned.msi`.
 The product name and customer instructions no longer say "Test". Its stable
 upgrade identity, browser registrations, extension requests, logging and runtime
 are retained. It uses the official signed Belgian DLL 5.2.0.6426, rather than
-the containing test wrapper's 5.2.0.6447 version. The complete candidate source
-archive and rebuild/replacement instructions are bundled. This is an unsigned
-private release candidate while exact vendor source mapping and signing acceptance
-of the changed DLL are established. Free Visual Studio Community is now installed
+the containing test wrapper's 5.2.0.6447 version. The corresponding source archive
+and rebuild/replacement instructions are bundled. The owner reported source
+confirmation from Thomas Charlier at Zetes and successful signing on the clean
+Windows laptop. The public package is unsigned under the publisher's selected
+distribution route. Free Visual Studio Community is now installed
 for this MIT project's runtime redistribution route. Qt/Mesa/OpenSSL
 notices and official middleware agreements are included. Signing is optional
 when choosing unsigned distribution. See
@@ -115,9 +116,9 @@ poc/scripts/build-installer.ps1 `
   -MiddlewareSha256 871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad `
   -MiddlewareProvenance third-party/belgian-eid/official-5.2.0-provenance.json `
   -MiddlewareSourceArchive build/release-evidence/beid-5.2.0.6447/source-6426-built/eid-mw-5abf0ca70280320e79371faf207f427e1b852b1b-source.zip `
-  -ReleaseEvidence docs/release-evidence-1.1.0.json `
+  -ReleaseEvidence docs/release-evidence-1.1.0.json -PublicRelease `
   -Wix build/tools/wix/wix.exe
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-1.1.0-windows-x64-unsigned-candidate.msi
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File poc/tests/test_installer.ps1 -Msi build/installer/LetsPeppol-eID-Bridge-1.1.0-windows-x64-unsigned.msi
 ```
 
 The builder requires NATIVE-BUILD.json for the executable-directory native build,
@@ -126,10 +127,10 @@ only runtime files, and generates separate WiX file/host fragments. Fixture
 mode is only for testing authoring: its output is named FIXTURE-NOT-FOR-USE and
 must never be handed to a tester. The upstream installer source is unchanged.
 
-Recreate the candidate source archive with `poc/scripts/build-beid-source.ps1`
+Recreate the source archive with `poc/scripts/build-beid-source.ps1`
 against a clean, full-history revision 6426 checkout. Its generated archive hash
 is recorded alongside the independently built comparison DLL; retain the archive
-identified in the provenance record when reproducing this exact candidate.
+identified in the provenance record when reproducing this exact package.
 The source archive contains all 1672 tracked files plus the generated header.
 `-PublicRelease` remains unavailable for an unverified source classification,
 even if a release-evidence file asserts completed hardware tests. Use the final

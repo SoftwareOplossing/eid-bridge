@@ -4,19 +4,21 @@
 
 Version **1.1.0** selects the owner's requested vendor-signed DLL 5.2.0.6426
 from official-hosted test QuickInstaller 5.2.0.6447. It packages the complete
-candidate revision 6426 source ZIP with a generated version header, rebuild/
+revision 6426 source ZIP with a generated version header, rebuild/
 replacement instructions and incorporated source notices. The vendor DLL is
 neither changed nor re-signed. Free Community 2022 17.14.41 is installed for
 this MIT project, with an independent source build completed and component-specific
 Microsoft runtime terms shown during installation.
 
-The source mapping remains `strongly_supported_unverified`: exact build inputs
-match across revisions 6426/6447 and both are buildable; exports/imports match,
-but no vendor attestation is available and binary sections differ. The builder's
-`-PublicRelease` option rejects this classification and requires evidence for
-clean-Windows signing of the selected app/DLL hashes plus publisher entitlement.
-Candidates remain marked private in their build metadata even though customer
-UI uses the professional product name. See `release-evidence-1.1.0.json` and
+The source mapping is now `verified` based on the owner's report of confirmation
+from Thomas Charlier at Zetes identifying revision 6426, combined with the checked
+public source/build inventory and independent build. The original correspondence
+was not independently reviewed; the commit link identifies source rather than
+publishing the private confirmation. The owner also confirmed a successful
+signature using the installed 1.1.0 application on the clean Windows laptop.
+The builder's `-PublicRelease` option requires these accepted evidence records
+and publisher entitlement. The public MSI has no candidate suffix and retains
+the exact tested application and signed middleware hashes. See `release-evidence-1.1.0.json` and
 `third-party/belgian-eid/official-5.2.0-provenance.json`.
 
 The following 1.0.x/0.1.x results are historical evidence for unchanged components.

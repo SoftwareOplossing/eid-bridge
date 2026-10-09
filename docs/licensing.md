@@ -12,14 +12,21 @@ PKCS#11 revision 6426 build passed. The entitlement record is in
 `third-party/microsoft/community-entitlement.json`; Microsoft's component-specific
 runtime terms are now shown for acceptance in the installer.
 
-The complete candidate revision 6426 source archive, generated header, build/
+The complete revision 6426 source archive, generated header, build/
 replacement instructions, source copyright blocks and official Toolkit agreements
 are packaged. Source inputs at revisions 6426/6447 match; the independent builds
-are successful and match the vendor exports/imports. The vendor's exact source
-mapping remains **strongly_supported_unverified**. Keep `public_release=false`
-and `corresponding_middleware_source_verified=false`. A clean-Windows signing
-check of the changed DLL is also pending; the earlier working DLL's hardware
-results do not establish this new DLL's behavior.
+are successful and match the vendor exports/imports. The source mapping is now
+**verified** using the owner's report of confirmation from Thomas Charlier at
+Zetes for commit `5abf0ca70280320e79371faf207f427e1b852b1b`, recorded on 2026-10-09.
+The confirmer and commit link were supplied by the owner; the original
+correspondence was not independently reviewed. Its evidence scope is preserved
+in the middleware provenance record rather than presenting the commit page as
+a public vendor attestation. The owner also
+confirmed `signature_verified: true` for the requested installed 1.1.0 app check
+on the clean Windows laptop. This closes the changed DLL's signing acceptance
+item. Public packaging now uses `-PublicRelease` and records the accepted source,
+hardware and publisher-entitlement evidence. The original private candidate is
+retained as historical evidence. Unsigned distribution remains the selected route.
 
 See [middleware provenance](../third-party/belgian-eid/SOURCE.md) and
 [release evidence](release-evidence-1.1.0.json). No upstream request was posted.

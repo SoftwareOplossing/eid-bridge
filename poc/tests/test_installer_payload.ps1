@@ -97,7 +97,7 @@ if (Test-Path -LiteralPath (Join-Path $output 'MIDDLEWARE-PROVENANCE.json')) {
         $provenance.source_mapping_classification -ne $package.middleware_source_classification -or
         (Get-FileHash -LiteralPath (Join-Path $output 'licenses/Belgian-eID-source.zip') -Algorithm SHA256).Hash -ne $provenance.source_archive_sha256 -or
         (Get-AuthenticodeSignature -LiteralPath $middlewarePath).Status -ne 'Valid') {
-        throw 'Vendor middleware, candidate source or provenance record does not match.'
+        throw 'Vendor middleware, source archive or provenance record does not match.'
     }
     if ($package.corresponding_middleware_source_verified -ne ($provenance.source_mapping_classification -eq 'verified') -or
         ($package.public_release -and -not $package.corresponding_middleware_source_verified)) {

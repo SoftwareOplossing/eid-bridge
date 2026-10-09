@@ -1,7 +1,6 @@
-Selected vendor-signed Windows x64 candidate: 5.2.0.6426
+Selected vendor-signed Windows x64 DLL: 5.2.0.6426
 Official containing wrapper: Belgium eID-QuickInstaller 5.2.0.6447_1.1.24.exe
 Nested middleware package: BeidMW_64.msi
-Candidate source: 5abf0ca70280320e79371faf207f427e1b852b1b (revision count 6426)
+Corresponding source: 5abf0ca70280320e79371faf207f427e1b852b1b (revision count 6426)
 Owner source reference: 5b2d101d09fcdb550098de1196cd64f82b431744 (revision count 6447)
-Source mapping: strongly_supported_unverified
-Public release: false
+Source mapping: verified using owner-reported vendor confirmation and inspected source/build inputs

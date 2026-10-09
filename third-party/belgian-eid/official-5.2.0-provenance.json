@@ -9,8 +9,16 @@
   "owner_commit_revision_count": 6447,
   "dll_revision_candidate_commit": "5abf0ca70280320e79371faf207f427e1b852b1b",
   "dll_revision_candidate_count": 6426,
-  "source_mapping_classification": "strongly_supported_unverified",
-  "binary_to_source_attestation_obtained": false,
+  "source_mapping_classification": "verified",
+  "binary_to_source_attestation_obtained": true,
+  "source_confirmation": {
+    "kind": "vendor confirmation reported by project owner",
+    "provided_by": "Thomas Charlier, Zetes",
+    "source_commit": "5abf0ca70280320e79371faf207f427e1b852b1b",
+    "reference": "https://github.com/Fedict/eid-mw/commit/5abf0ca70280320e79371faf207f427e1b852b1b",
+    "recorded_on": "2026-10-09",
+    "evidence_scope": "Owner reported obtaining the DLL-to-source confirmation and supplied the confirmer and commit link; original correspondence was not independently reviewed. Public source completeness and independent build were checked separately."
+  },
   "source_inputs_identical_between_candidates": {
     "cardcomm/pkcs11/VS_2022": {
       "5abf0ca70280320e79371faf207f427e1b852b1b": "778929f04b98af46c555cada1d8e71462da9e3e9",
@@ -158,7 +166,6 @@
   "dll_version": "5.2.0.6426",
   "dll_sha256": "871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad",
   "vendor_binary_modified": false,
-  "public_release": false,
   "source_build_comparison": {
     "commit": "5b2d101d09fcdb550098de1196cd64f82b431744",
     "workflow_url": "https://github.com/SoftwareOplossing/eid-bridge/actions/runs/37951988125",

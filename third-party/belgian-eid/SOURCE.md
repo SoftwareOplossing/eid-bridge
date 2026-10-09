@@ -12,10 +12,15 @@ The owner selected this vendor DLL rather than substituting a source-built DLL.
 The test distribution URL does not establish upstream production approval or
 government endorsement. No official middleware installer is run by the bridge.
 
-## Candidate corresponding source
+## Corresponding source
 
-Source mapping is **strongly_supported_unverified**. A vendor binary/source
-attestation has not been obtained. The public source is
+Source mapping is **verified** using the project owner's report of confirmation
+from Thomas Charlier at Zetes identifying
+<https://github.com/Fedict/eid-mw/commit/5abf0ca70280320e79371faf207f427e1b852b1b>.
+The owner supplied the confirmer and commit link on 2026-10-09; the original
+correspondence was not independently reviewed. This confirmation closes the
+mapping investigation when combined with the independently inspected source,
+version generation, build inputs and successful builds below. The public source is
 <https://github.com/Fedict/eid-mw>.
 
 - Commit `5abf0ca70280320e79371faf207f427e1b852b1b` has full-history revision
@@ -32,13 +37,15 @@ attestation has not been obtained. The public source is
 - Public upstream CI around September 7–9 contains documentation and metadata
   checks, rather than a Windows DLL build record identifying this binary.
 
-`licenses/Belgian-eID-source.zip` supplies the complete **candidate** revision
+`licenses/Belgian-eID-source.zip` supplies the complete revision
 6426 tree with its generated version header for offline rebuilding. See
 `Belgian-eID-build.md` for compiler prerequisites, rebuilding and DLL replacement.
 It includes source, projects, scripts, resources, bundled LibTomCrypt hash
 implementations and OASIS headers. Microsoft OS/compiler dependencies are
-separate system/compiler libraries. Source completeness for this candidate does
-not by itself prove that it corresponds to the selected vendor binary.
+separate system/compiler libraries. The archive contains all 1672 tracked files
+plus the upstream-generated version header. Its SHA-256 is
+`586c4040eaeba934324dc39f6af42c71c99d47826b887b7bcc5385164be3ed90`.
+The source/build comparison and vendor confirmation are separate evidence items.
 
 `LICENSE` retains the upstream LGPL notice, with full LGPLv3/GPLv3 texts and
 `PKCS11-source-notices.txt` installed separately. The latter preserves source
@@ -47,9 +54,10 @@ copyright/licence blocks, including bundled dependency notices. The four
 MSI; all are retained verbatim. There is no middleware signature/hash lock at
 application runtime preventing a compatible LGPL library replacement.
 
-The installer remains a private release candidate while exact source mapping
-and acceptance of this changed DLL remain pending. No vendor DLL or installer
-is tracked in Git. See `docs/licensing.md` and `docs/release-process.md`.
+The owner confirmed successful signing with the installed 1.1.0 application on
+the clean Windows laptop. The public 1.1.0 installer includes the source archive,
+build instructions and notices. No vendor DLL or installer is tracked in Git.
+See `docs/licensing.md` and `docs/release-process.md`.
 
 ## Historical binary
 
