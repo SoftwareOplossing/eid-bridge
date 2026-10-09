@@ -30,10 +30,18 @@ OSI-approved licences, including this MIT application, without the usual
 organizational user-count restriction. Its Distributable Code section grants
 redistribution subject to requirements/restrictions, including protecting the
 Microsoft code in distribution/end-user terms. Free Community licensing is an
-available route; simply copying this document does not establish that the
-publisher holds or has accepted a valid Visual Studio licence. Before public
-release, the publisher must record its valid licence/entitlement and applicable
-terms. The runtime EULA alone is not the developer's redistribution grant.
+available route. On 2026-10-09 the publisher explicitly chose and authorized
+installation of Community 2022 for this MIT project. Version 17.14.41, the
+C++ workload and Windows SDK were installed on the development PC; an unmodified
+project middleware source build passed using these tools. The installed product
+reports complete, launchable and no reboot required. See
+`community-entitlement.json` for product identity, licence route and terms hash.
+This records the selected entitlement rather than merely copying the terms.
+The runtime EULA is also shown on the installer's licence page for users to
+accept, applying only to Microsoft's separate component. MIT/LGPL rights are
+preserved. Downstream distributors must maintain applicable terms and obtain
+their own distribution rights. The runtime EULA alone is not the developer's
+redistribution grant. Paid code signing remains a separate, optional choice.
 
 The Windows 8.1 SDK `d3dcompiler_47.dll` previously copied by Qt deployment is
 excluded from this Windows 11-only installer. Qt's `QRhiD3D::resolveD3DCompile`

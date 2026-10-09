@@ -1,8 +1,31 @@
 # Redistribution preparation
 
-The 1.0.1 unsigned private candidate includes the dependency notices collected
-below. It retains the tested executable and Belgian DLL. The official DLL's
-matching source is still unresolved; **do not publish this candidate**.
+Version 1.1.0 selects the unchanged, timestamped ZETES-signed **5.2.0.6426**
+DLL extracted from the official-hosted **test wrapper 5.2.0.6447**. The wrapper
+version must not be used as the DLL version. This choice follows the owner's
+instruction to retain the official signed DLL. It retains the application,
+Qt/OpenSSL versions, logging, browser setup and upgrade identity.
+
+Free Visual Studio Community 2022 17.14.41 and its C++/Windows SDK tools were
+installed at the publisher's request for this MIT project. A local unmodified
+PKCS#11 revision 6426 build passed. The entitlement record is in
+`third-party/microsoft/community-entitlement.json`; Microsoft's component-specific
+runtime terms are now shown for acceptance in the installer.
+
+The complete candidate revision 6426 source archive, generated header, build/
+replacement instructions, source copyright blocks and official Toolkit agreements
+are packaged. Source inputs at revisions 6426/6447 match; the independent builds
+are successful and match the vendor exports/imports. The vendor's exact source
+mapping remains **strongly_supported_unverified**. Keep `public_release=false`
+and `corresponding_middleware_source_verified=false`. A clean-Windows signing
+check of the changed DLL is also pending; the earlier working DLL's hardware
+results do not establish this new DLL's behavior.
+
+See [middleware provenance](../third-party/belgian-eid/SOURCE.md) and
+[release evidence](release-evidence-1.1.0.json). No upstream request was posted.
+
+The following sections retain the 1.0.1 audit as historical evidence. Its selected
+5.1.34 DLL and pending Community setup are superseded by the records above.
 
 ## Completed packaging work
 
@@ -31,7 +54,7 @@ records every packaged notice and binary. Read the component-specific records in
 `third-party/qt`, `third-party/openssl`, `third-party/microsoft` and
 `third-party/belgian-eid`.
 
-## Remaining public-release requirements
+## Historical 1.0.1 public-release requirements
 
 1. Obtain authoritative exact source, Windows build instructions and incorporated
    notices for Belgian `beidpkcs11.dll` 5.1.34.6213, SHA-256

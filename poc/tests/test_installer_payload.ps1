@@ -83,6 +83,30 @@ if ($package.application_signed) {
 } elseif ($package.app_sha256 -ne $build.app_sha256) {
     throw 'Unsigned package changed the original native application.'
 }
+$middlewarePath = Join-Path $output 'beidpkcs11.dll'
+if ((Get-FileHash -LiteralPath $middlewarePath -Algorithm SHA256).Hash -ne $package.middleware_sha256) {
+    throw 'Selected middleware differs from the package record.'
+}
+if (Test-Path -LiteralPath (Join-Path $output 'MIDDLEWARE-PROVENANCE.json')) {
+    $provenance = Get-Content -LiteralPath (Join-Path $output 'MIDDLEWARE-PROVENANCE.json') -Raw | ConvertFrom-Json
+    $middlewareVersion = (Get-Item -LiteralPath $middlewarePath).VersionInfo
+    $numericVersion = '{0}.{1}.{2}.{3}' -f $middlewareVersion.FileMajorPart,$middlewareVersion.FileMinorPart,
+        $middlewareVersion.FileBuildPart,$middlewareVersion.FilePrivatePart
+    if ($provenance.dll_sha256 -ne $package.middleware_sha256 -or
+        $provenance.dll_version -ne $numericVersion -or
+        $provenance.source_mapping_classification -ne $package.middleware_source_classification -or
+        (Get-FileHash -LiteralPath (Join-Path $output 'licenses/Belgian-eID-source.zip') -Algorithm SHA256).Hash -ne $provenance.source_archive_sha256 -or
+        (Get-AuthenticodeSignature -LiteralPath $middlewarePath).Status -ne 'Valid') {
+        throw 'Vendor middleware, candidate source or provenance record does not match.'
+    }
+    if ($package.corresponding_middleware_source_verified -ne ($provenance.source_mapping_classification -eq 'verified') -or
+        ($package.public_release -and -not $package.corresponding_middleware_source_verified)) {
+        throw 'Public/source verification flags overstate the recorded evidence.'
+    }
+    foreach ($required in 'licenses/Belgian-eID-build.md','licenses/PKCS11-source-notices.txt') {
+        if (-not (Test-Path -LiteralPath (Join-Path $output $required))) { throw "Missing middleware build/notice file: $required" }
+    }
+}
 if ($package.qt_runtime_notices_verified) {
     $qt = Get-Content -LiteralPath (Join-Path $output 'licenses/Qt/Qt-runtime-inventory.json') -Raw | ConvertFrom-Json
     foreach ($entry in @($qt.runtime_files) + @($qt.mesa)) {

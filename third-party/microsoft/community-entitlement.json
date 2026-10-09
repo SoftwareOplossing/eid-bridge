@@ -1,0 +1,15 @@
+{
+  "product_id": "Microsoft.VisualStudio.Product.Community",
+  "display_version": "17.14.41 (September 2026)",
+  "installation_version": "17.14.37710.0",
+  "complete": true,
+  "launchable": true,
+  "reboot_required": false,
+  "setup_authorized_by_publisher": true,
+  "license_route": "Visual Studio Community 2022 organizational OSI open-source development; MIT application",
+  "license_terms_url": "https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/",
+  "audit_date": "2026-10-09",
+  "bootstrapper_sha256": "e6b61fd64e03ffa252060602e3873ef09dff477c168d3aeab233e07299e82344",
+  "license_terms_sha256": "c35a5f57409a9d85d501cc4a98a6d3e7541c0c321ecf91e6484050656d895ea9",
+  "project_build_verified": "Unmodified Belgian PKCS11 source revision 6426 built with these tools"
+}

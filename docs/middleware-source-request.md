@@ -1,5 +1,9 @@
 # Ready-to-send upstream source request
 
+Historical draft for the previous 5.1.34 private candidate. It was not posted.
+The selected DLL is now 5.2.0.6426 from the 5.2.0.6447 test wrapper; do not send
+this old request as though it concerns the current package.
+
 Destination: <https://github.com/Fedict/eid-mw/issues>
 
 Title: Corresponding source and build instructions for official Windows 5.1.34 PKCS#11 DLL

@@ -1,0 +1,13 @@
+{
+  "package_version": "1.1.0",
+  "middleware_sha256": "871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad",
+  "app_sha256": "44e074f663a105336ab658cf0a86042d81f74fa89c99d519cc8c884b526a723f",
+  "signature_verified": false,
+  "clean_windows_signing_verified": false,
+  "publisher_visual_studio_entitlement_confirmed": true,
+  "visual_studio_entitlement_record": "third-party/microsoft/community-entitlement.json",
+  "middleware_source_classification": "strongly_supported_unverified",
+  "public_release": false,
+  "hardware_evidence": "Pending test of selected 5.2.0.6426 vendor DLL; earlier 5.1.34 results are historical",
+  "audit_date": "2026-10-09"
+}

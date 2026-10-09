@@ -5,7 +5,11 @@ param(
     [Parameter(Mandatory)][string]$RuntimeDirectory,
     [Parameter(Mandatory)][string]$MiddlewareDll,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$MiddlewareSha256,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '1.0.1',
+    [string]$MiddlewareProvenance = '',
+    [string]$MiddlewareSourceArchive = '',
+    [string]$ReleaseEvidence = '',
+    [switch]$PublicRelease,
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '1.1.0',
     [string]$Wix = 'wix',
     [string]$OutputDirectory = '',
     [string]$SignTool = '',
@@ -24,6 +28,26 @@ if ($signingCount -notin 0,4 -or ($Fixture -and $signingCount)) {
 $signing = $signingCount -eq 4
 $runtime = (Resolve-Path -LiteralPath $RuntimeDirectory).Path
 $middleware = (Resolve-Path -LiteralPath $MiddlewareDll).Path
+$middlewareInfo = $null
+$middlewareSource = $null
+if ($MiddlewareProvenance) {
+    $middlewareInfoPath = (Resolve-Path -LiteralPath $MiddlewareProvenance).Path
+    $middlewareInfo = Get-Content -LiteralPath $middlewareInfoPath -Raw | ConvertFrom-Json
+    if ($Fixture -or $middlewareInfo.origin -ne 'vendor_binary' -or
+        $middlewareInfo.source_repository -ne 'https://github.com/Fedict/eid-mw' -or
+        $middlewareInfo.source_mapping_classification -notin 'verified','strongly_supported_unverified','unresolved' -or
+        $middlewareInfo.dll_sha256 -ne $MiddlewareSha256.ToLowerInvariant() -or
+        $middlewareInfo.architecture -ne 'x64') {
+        throw 'Invalid vendor middleware provenance record.'
+    }
+    $middlewareSource = (Resolve-Path -LiteralPath $MiddlewareSourceArchive).Path
+    if ((Get-FileHash -LiteralPath $middlewareSource -Algorithm SHA256).Hash -ne $middlewareInfo.source_archive_sha256) {
+        throw 'Middleware source archive does not match the provenance record.'
+    }
+}
+if ($MiddlewareSourceArchive -and -not $middlewareInfo) { throw 'A source archive needs a matching provenance record.' }
+if (-not $Fixture -and -not $middlewareInfo) { throw 'The selected vendor DLL requires its source/provenance record.' }
+$middlewareSourceVerified = $middlewareInfo -and $middlewareInfo.source_mapping_classification -eq 'verified'
 $nativeInfo = $null
 if (-not $Fixture) {
     $nativeInfo = Get-Content -LiteralPath (Join-Path $runtime 'NATIVE-BUILD.json') -Raw | ConvertFrom-Json
@@ -57,8 +81,29 @@ if (-not $Fixture) {
 if ((Get-FileHash -LiteralPath $middleware -Algorithm SHA256).Hash -ne $MiddlewareSha256) {
     throw 'Middleware DLL does not match the recorded candidate.'
 }
-if (-not $Fixture -and (Get-AuthenticodeSignature -LiteralPath $middleware).Status -ne 'Valid') {
-    throw 'The middleware candidate must have a valid Authenticode signature.'
+if (-not $Fixture) {
+    $middlewareSignature = (Get-AuthenticodeSignature -LiteralPath $middleware).Status.ToString()
+    if ($middlewareSignature -ne 'Valid') {
+        throw 'Middleware requires its valid vendor signature.'
+    }
+    $middlewareBytes = [IO.File]::ReadAllBytes($middleware)
+    $peOffset = [BitConverter]::ToInt32($middlewareBytes,0x3c)
+    if ([BitConverter]::ToUInt16($middlewareBytes,$peOffset+4) -ne 0x8664) { throw 'Middleware DLL must be Windows x64.' }
+    $middlewareVersion = (Get-Item -LiteralPath $middleware).VersionInfo
+    if ($middlewareInfo -and ('{0}.{1}.{2}.{3}' -f $middlewareVersion.FileMajorPart,$middlewareVersion.FileMinorPart,
+        $middlewareVersion.FileBuildPart,$middlewareVersion.FilePrivatePart) -ne $middlewareInfo.dll_version) {
+        throw 'Middleware version differs from its vendor provenance record.'
+    }
+}
+$releaseInfo = $null
+if ($ReleaseEvidence) { $releaseInfo = Get-Content -LiteralPath $ReleaseEvidence -Raw | ConvertFrom-Json }
+if ($PublicRelease -and ($Fixture -or -not $middlewareSourceVerified -or -not $releaseInfo -or
+    $releaseInfo.middleware_sha256 -ne $MiddlewareSha256.ToLowerInvariant() -or
+    $releaseInfo.app_sha256 -ne $nativeInfo.app_sha256 -or
+    $releaseInfo.signature_verified -ne $true -or
+    $releaseInfo.clean_windows_signing_verified -ne $true -or
+    $releaseInfo.publisher_visual_studio_entitlement_confirmed -ne $true)) {
+    throw 'Public packaging requires verified corresponding source, signing evidence for these binaries on clean Windows, and publisher Visual Studio entitlement.'
 }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'build/installer' }
 $work = Join-Path $root ('build/installer-work-' + [guid]::NewGuid().ToString('N'))
@@ -111,6 +156,12 @@ Copy-Item -LiteralPath (Join-Path $root 'third-party/microsoft') -Destination (J
 Copy-Item -LiteralPath (Join-Path $root 'third-party/openssl/README.md') -Destination (Join-Path $licenses 'OpenSSL-source-and-notices.md')
 Get-ChildItem -LiteralPath (Join-Path $root 'third-party/belgian-eid') -Filter 'Toolkit-agreement-*.rtf' |
     Copy-Item -Destination $licenses
+Copy-Item -LiteralPath (Join-Path $root 'third-party/belgian-eid/PKCS11-source-notices.txt') -Destination $licenses
+if ($middlewareInfo) {
+    Copy-Item -LiteralPath $middlewareInfoPath -Destination (Join-Path $payload 'MIDDLEWARE-PROVENANCE.json')
+    Copy-Item -LiteralPath $middlewareSource -Destination (Join-Path $licenses 'Belgian-eID-source.zip')
+    Copy-Item -LiteralPath (Join-Path $root 'third-party/belgian-eid/BUILD.md') -Destination (Join-Path $licenses 'Belgian-eID-build.md')
+}
 if (Test-Path -LiteralPath (Join-Path $runtime 'licenses')) {
     Copy-Item -LiteralPath (Join-Path $runtime 'licenses') -Destination $payload -Recurse -Force
 }
@@ -120,16 +171,23 @@ WriteUtf8 (Join-Path $payload 'eu.webeid.firefox.json') ((Get-Content -LiteralPa
 WriteUtf8 (Join-Path $payload 'Onboarding.url') "[InternetShortcut]`r`nURL=https://be.letspeppol.org/onboarding`r`n"
 Copy-Item -LiteralPath (Join-Path $root 'install/installer-readme.txt') -Destination (Join-Path $payload 'README.txt')
 $metadata = [ordered]@{
-    package_version = $Version; release_candidate = $true; public_release = $false; fixture = [bool]$Fixture
+    package_version = $Version; release_candidate = [bool](-not $PublicRelease); public_release = [bool]$PublicRelease; fixture = [bool]$Fixture
     application_signed = [bool]$signing
     publisher = $(if ($signing) { $ExpectedPublisher } else { $null })
     app_sha256 = $appHash
     app_unsigned_sha256 = $(if ($nativeInfo) { $nativeInfo.app_sha256 } else { $appHash })
     app_commit = $(if ($nativeInfo) { $nativeInfo.app_commit } else { 'fixture' })
     library_commit = $(if ($nativeInfo) { $nativeInfo.library_commit } else { 'fixture' })
-    middleware_version = (Get-Item -LiteralPath $middleware).VersionInfo.FileVersion
+    middleware_version = ('{0}.{1}.{2}.{3}' -f (Get-Item -LiteralPath $middleware).VersionInfo.FileMajorPart,
+        (Get-Item -LiteralPath $middleware).VersionInfo.FileMinorPart,
+        (Get-Item -LiteralPath $middleware).VersionInfo.FileBuildPart,
+        (Get-Item -LiteralPath $middleware).VersionInfo.FilePrivatePart)
     middleware_sha256 = $MiddlewareSha256.ToLowerInvariant()
-    corresponding_middleware_source_verified = $false
+    corresponding_middleware_source_verified = [bool]$middlewareSourceVerified
+    middleware_source_classification = $(if ($middlewareInfo) { $middlewareInfo.source_mapping_classification } else { 'unresolved' })
+    middleware_origin = 'vendor-signed binary'
+    middleware_source_commit = $(if ($middlewareInfo) { $middlewareInfo.source_commit } else { $null })
+    publisher_visual_studio_entitlement_confirmed = [bool]($releaseInfo -and $releaseInfo.publisher_visual_studio_entitlement_confirmed -eq $true)
     qt_runtime_notices_verified = [bool](-not $Fixture)
     system_d3d_compiler = 'Windows 11 System32; SDK copy not bundled'
     module_resolution = $(if ($Fixture) { 'fixture-not-for-use' } else { 'APP_DIRECTORY' })
@@ -185,6 +243,7 @@ $message = Xml 'A different Web eID desktop application is registered. Uninstall
 WriteUtf8 (Join-Path $work 'hosts.wxs') ('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"><Fragment>{0}<Launch Condition="{1}" Message="{2}" /><ComponentGroup Id="NativeHosts">{3}</ComponentGroup></Fragment></Wix>' -f ($searches -join "`n"),$condition,$message,($hosts -join "`n"))
 $name = if ($Fixture) { 'FIXTURE-NOT-FOR-USE' } else { 'LetsPeppol-eID-Bridge' }
 $kind = if ($signing) { 'signed-candidate' } else { 'unsigned-candidate' }
+if ($PublicRelease) { $kind = if ($signing) { 'signed' } else { 'unsigned' } }
 $msi = Join-Path $work "$name-$Version-windows-x64-$kind.msi"
 & $Wix build -nologo -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
     -d "RepoRoot=$root" -d "Version=$Version" `
@@ -204,9 +263,17 @@ $report = [ordered]@{
     msi_sha256 = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash.ToLowerInvariant()
     application = $metadata
     installer_signed = [bool]$signing
-    public_release = $false
-    remaining_release_requirements = @('Exact corresponding Belgian middleware source, build instructions and incorporated notices',
-        'Publisher confirmation of Visual Studio runtime redistribution entitlement')
+    public_release = [bool]$PublicRelease
+    remaining_release_requirements = @()
+}
+if (-not $middlewareSourceVerified) { $report.remaining_release_requirements += 'Verify exact corresponding source for the selected vendor DLL' }
+if (-not $releaseInfo -or $releaseInfo.clean_windows_signing_verified -ne $true -or
+    $releaseInfo.middleware_sha256 -ne $MiddlewareSha256.ToLowerInvariant() -or
+    $releaseInfo.app_sha256 -ne $nativeInfo.app_sha256) {
+    $report.remaining_release_requirements += 'Clean Windows signing check for the selected new middleware'
+}
+if (-not $metadata.publisher_visual_studio_entitlement_confirmed) {
+    $report.remaining_release_requirements += 'Publisher confirmation of Visual Studio runtime redistribution entitlement'
 }
 $report.signing_choice = $(if ($signing) { 'Publisher-signed' } else { 'Unsigned; Windows publisher/reputation warnings may apply' })
 WriteUtf8 (Join-Path $OutputDirectory "BUILD-REPORT-$Version-$kind.json") ($report | ConvertTo-Json -Depth 5)

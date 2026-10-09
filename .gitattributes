@@ -79,3 +79,5 @@ third-party/qt/notices/*.txt text eol=lf
 third-party/qt/notices/*.json text eol=lf
 third-party/qt/notices/build-records/* -text
 third-party/belgian-eid/Toolkit-agreement-*.rtf -text
+third-party/microsoft/*terms.txt -text
+third-party/belgian-eid/PKCS11-source-notices.txt -text -whitespace

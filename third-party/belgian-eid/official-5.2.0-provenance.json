@@ -1,0 +1,227 @@
+{
+  "binary_url": "https://dist.eid.belgium.be/releases/test_BeidSignApp/Belgium%20eID-QuickInstaller%205.2.0.6447_1.1.24.exe",
+  "audit_date": "2026-10-09",
+  "distribution_channel": "official-hosted test build",
+  "wrapper_version": "5.2.0.6447",
+  "actual_pkcs11_version": "5.2.0.6426",
+  "architecture": "x64",
+  "source_commit_supplied_by_owner": "5b2d101d09fcdb550098de1196cd64f82b431744",
+  "owner_commit_revision_count": 6447,
+  "dll_revision_candidate_commit": "5abf0ca70280320e79371faf207f427e1b852b1b",
+  "dll_revision_candidate_count": 6426,
+  "source_mapping_classification": "strongly_supported_unverified",
+  "binary_to_source_attestation_obtained": false,
+  "source_inputs_identical_between_candidates": {
+    "cardcomm/pkcs11/VS_2022": {
+      "5abf0ca70280320e79371faf207f427e1b852b1b": "778929f04b98af46c555cada1d8e71462da9e3e9",
+      "5b2d101d09fcdb550098de1196cd64f82b431744": "778929f04b98af46c555cada1d8e71462da9e3e9"
+    },
+    "cardcomm/pkcs11/src": {
+      "5abf0ca70280320e79371faf207f427e1b852b1b": "8e58230298fb8e1b19e7816306ea0e97c12a218f",
+      "5b2d101d09fcdb550098de1196cd64f82b431744": "8e58230298fb8e1b19e7816306ea0e97c12a218f"
+    },
+    "doc/sdk/include/v240": {
+      "5abf0ca70280320e79371faf207f427e1b852b1b": "864c50c9ad7dc4b66740b3cea8d7bfa08c5ef314",
+      "5b2d101d09fcdb550098de1196cd64f82b431744": "864c50c9ad7dc4b66740b3cea8d7bfa08c5ef314"
+    },
+    "scripts/windows/create_eidmw_version_files.cmd": {
+      "5abf0ca70280320e79371faf207f427e1b852b1b": "837f94b5519b8d36e4d3deb647d2fecd724b3179",
+      "5b2d101d09fcdb550098de1196cd64f82b431744": "837f94b5519b8d36e4d3deb647d2fecd724b3179"
+    },
+    "scripts/windows/set_eidmw_version.cmd": {
+      "5abf0ca70280320e79371faf207f427e1b852b1b": "4fdf3a51e10ccb56a0b1fc2fbdc3779926235e15",
+      "5b2d101d09fcdb550098de1196cd64f82b431744": "4fdf3a51e10ccb56a0b1fc2fbdc3779926235e15"
+    }
+  },
+  "dll_pe": {
+    "machine": 34404,
+    "linker_version": [
+      14,
+      44
+    ],
+    "pe_timestamp": 1788873588,
+    "imports": [
+      "WinSCard.dll",
+      "USER32.dll",
+      "GDI32.dll",
+      "ADVAPI32.dll",
+      "SHELL32.dll",
+      "MSVCP140.dll",
+      "KERNEL32.dll",
+      "VCRUNTIME140_1.dll",
+      "VCRUNTIME140.dll",
+      "api-ms-win-crt-runtime-l1-1-0.dll",
+      "api-ms-win-crt-stdio-l1-1-0.dll",
+      "api-ms-win-crt-string-l1-1-0.dll",
+      "api-ms-win-crt-heap-l1-1-0.dll",
+      "api-ms-win-crt-filesystem-l1-1-0.dll",
+      "api-ms-win-crt-convert-l1-1-0.dll",
+      "api-ms-win-crt-time-l1-1-0.dll"
+    ],
+    "exports": [
+      "C_CancelFunction",
+      "C_CloseAllSessions",
+      "C_CloseSession",
+      "C_CopyObject",
+      "C_CreateObject",
+      "C_Decrypt",
+      "C_DecryptDigestUpdate",
+      "C_DecryptFinal",
+      "C_DecryptInit",
+      "C_DecryptUpdate",
+      "C_DecryptVerifyUpdate",
+      "C_DeriveKey",
+      "C_DestroyObject",
+      "C_Digest",
+      "C_DigestEncryptUpdate",
+      "C_DigestFinal",
+      "C_DigestInit",
+      "C_DigestKey",
+      "C_DigestUpdate",
+      "C_Encrypt",
+      "C_EncryptFinal",
+      "C_EncryptInit",
+      "C_EncryptUpdate",
+      "C_Finalize",
+      "C_FindObjects",
+      "C_FindObjectsFinal",
+      "C_FindObjectsInit",
+      "C_GenerateKey",
+      "C_GenerateKeyPair",
+      "C_GenerateRandom",
+      "C_GetAttributeValue",
+      "C_GetFunctionList",
+      "C_GetFunctionStatus",
+      "C_GetInfo",
+      "C_GetMechanismInfo",
+      "C_GetMechanismList",
+      "C_GetObjectSize",
+      "C_GetOperationState",
+      "C_GetSessionInfo",
+      "C_GetSlotInfo",
+      "C_GetSlotList",
+      "C_GetTokenInfo",
+      "C_InitPIN",
+      "C_InitToken",
+      "C_Initialize",
+      "C_Login",
+      "C_Logout",
+      "C_OpenSession",
+      "C_SeedRandom",
+      "C_SetAttributeValue",
+      "C_SetOperationState",
+      "C_SetPIN",
+      "C_Sign",
+      "C_SignEncryptUpdate",
+      "C_SignFinal",
+      "C_SignInit",
+      "C_SignRecover",
+      "C_SignRecoverInit",
+      "C_SignUpdate",
+      "C_UnwrapKey",
+      "C_Verify",
+      "C_VerifyFinal",
+      "C_VerifyInit",
+      "C_VerifyRecover",
+      "C_VerifyRecoverInit",
+      "C_VerifyUpdate",
+      "C_WaitForSlotEvent",
+      "C_WrapKey"
+    ]
+  },
+  "files": [
+    {
+      "path": "Belgium eID-QuickInstaller 5.2.0.6447_1.1.24.exe",
+      "size": 19113560,
+      "sha256": "db4cf1dee4cb807198fa55a225999adbfdc77788f828ff7d4d3a33f9db0f753c"
+    },
+    {
+      "path": "quickinstaller/BeidMW_64.msi",
+      "size": 3633152,
+      "sha256": "26581bea1d17d567193e37e9982fa4eccfb9f394b171f5c269ee82ead3653b25"
+    },
+    {
+      "path": "middleware-x64/File/beidpkcs11_64.dll",
+      "size": 373728,
+      "sha256": "871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad"
+    },
+    {
+      "path": "eid-mw-5b2d101-source.zip",
+      "size": 18612302,
+      "sha256": "e536a67fb6ee07b443bda685fce7c6e0a3e57b2515ac53cd105f2fc97d472a3d"
+    }
+  ],
+  "origin": "vendor_binary",
+  "source_repository": "https://github.com/Fedict/eid-mw",
+  "source_commit": "5abf0ca70280320e79371faf207f427e1b852b1b",
+  "git_revision_count": 6426,
+  "dll_version": "5.2.0.6426",
+  "dll_sha256": "871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad",
+  "vendor_binary_modified": false,
+  "public_release": false,
+  "source_build_comparison": {
+    "commit": "5b2d101d09fcdb550098de1196cd64f82b431744",
+    "workflow_url": "https://github.com/SoftwareOplossing/eid-bridge/actions/runs/37951988125",
+    "dll_version": "5.2.0.6447",
+    "linker_version": "14.44",
+    "exports_identical": true,
+    "import_set_identical": true,
+    "binary_sections_identical": false,
+    "vendor_attestation": false
+  },
+  "upstream_ci_investigation": {
+    "date_range": "2026-09-07..2026-09-09",
+    "public_runs": [
+      34135399241,
+      34135399163
+    ],
+    "windows_binary_build_log_found": false
+  },
+  "authenticode_evidence": [
+    {
+      "file": "Belgium eID-QuickInstaller 5.2.0.6447_1.1.24.exe",
+      "status": "Valid",
+      "signer": "ZETES SA",
+      "signer_thumbprint": "3F85E2A3538669C2A04AAEEB318497C780101872",
+      "timestamp_signer": "Globalsign R45 TSA for CodeSign 202510",
+      "timestamp_thumbprint": "8F24D5A7DE81D356D6ABEEAB438A2D1E3CE385EE"
+    },
+    {
+      "file": "BeidMW_64.msi",
+      "status": "Valid",
+      "signer": "ZETES SA",
+      "signer_thumbprint": "3F85E2A3538669C2A04AAEEB318497C780101872",
+      "timestamp_signer": "Globalsign R45 TSA for CodeSign 202510",
+      "timestamp_thumbprint": "8F24D5A7DE81D356D6ABEEAB438A2D1E3CE385EE"
+    },
+    {
+      "file": "beidpkcs11_64.dll",
+      "status": "Valid",
+      "signer": "ZETES SA",
+      "signer_thumbprint": "3F85E2A3538669C2A04AAEEB318497C780101872",
+      "timestamp_signer": "Globalsign R45 TSA for CodeSign 202510",
+      "timestamp_thumbprint": "8F24D5A7DE81D356D6ABEEAB438A2D1E3CE385EE"
+    }
+  ],
+  "source_archive": "eid-mw-5abf0ca70280320e79371faf207f427e1b852b1b-source.zip",
+  "source_archive_sha256": "586c4040eaeba934324dc39f6af42c71c99d47826b887b7bcc5385164be3ed90",
+  "independent_revision_6426_build": {
+    "origin": "source_build",
+    "source_repository": "https://github.com/Fedict/eid-mw",
+    "source_commit": "5abf0ca70280320e79371faf207f427e1b852b1b",
+    "git_revision_count": 6426,
+    "source_mapping_classification": "verified",
+    "modifications": "None; upstream-generated version header included",
+    "dll_version": "5.2.0.6426",
+    "architecture": "x64",
+    "dll_sha256": "2aa28c5cc38a3c5a753b704b352cdbe94b62b6a29fe65bcb6434be86e8c9413b",
+    "dll_signature_status": "NotSigned",
+    "source_archive": "eid-mw-5abf0ca70280320e79371faf207f427e1b852b1b-source.zip",
+    "source_archive_sha256": "586c4040eaeba934324dc39f6af42c71c99d47826b887b7bcc5385164be3ed90",
+    "build_project": "cardcomm/pkcs11/VS_2022/beidpkcs11.vcxproj",
+    "build_configuration": "Release|x64",
+    "build_tool": "17.14.60.43110",
+    "workflow_run": null,
+    "workflow_commit": null
+  }
+}

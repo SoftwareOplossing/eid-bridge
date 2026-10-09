@@ -1,4 +1,7 @@
-# Official installer https://dist.eid.belgium.be/releases/5.1.34/BeidMW_64_5.1.34.6350.msi
+# Selected official-hosted test wrapper 5.2.0.6447; actual regular x64 DLL 5.2.0.6426
+db4cf1dee4cb807198fa55a225999adbfdc77788f828ff7d4d3a33f9db0f753c *Belgium eID-QuickInstaller 5.2.0.6447_1.1.24.exe
+26581bea1d17d567193e37e9982fa4eccfb9f394b171f5c269ee82ead3653b25 *BeidMW_64.msi
+871dd692ac8d77368758679a835d0262b33f0565580c081fb8066e0d14fcf2ad *beidpkcs11.dll
+# Historical 5.1.34 private candidate; NOT the selected DLL
 d67b88fd920aea63a3df6abaf05163508b130011c8e4f1cfa7fcbb8e4779c5f1 *BeidMW_64_5.1.34.6350.msi
-# Its x64 PKCS#11 DLL, named beidpkcs11.dll beside our native application:
-b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 *beidpkcs11.dll
+b3e5bbd5112b5ef55f4189bdf334c989abf99f27c1cfb3c2a3e784efd780cf93 *historical-beidpkcs11-5.1.34.6213.dll
