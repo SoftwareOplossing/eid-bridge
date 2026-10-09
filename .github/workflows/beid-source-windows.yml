@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: Let's Peppol contributors
+# SPDX-License-Identifier: MIT
+name: Belgian middleware source build (Windows x64)
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/beid-5-2-release]
+    paths:
+      - .github/workflows/beid-source-windows.yml
+      - poc/scripts/build-beid-source.ps1
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Get the exact unmodified upstream source
+        shell: pwsh
+        run: |
+          git clone https://github.com/Fedict/eid-mw.git build/eid-mw
+          if ($LASTEXITCODE) { throw 'Source clone failed' }
+          git -C build/eid-mw checkout --detach 5b2d101d09fcdb550098de1196cd64f82b431744
+          if ($LASTEXITCODE) { throw 'Source checkout failed' }
+      - name: Build the x64 DLL and preserve corresponding source
+        shell: pwsh
+        run: poc/scripts/build-beid-source.ps1 -SourceDirectory build/eid-mw -OutputDirectory build/beid-source-build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beid-source-windows-x64
+          path: build/beid-source-build
+          if-no-files-found: error
